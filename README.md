@@ -1,2 +1,2 @@
 # my-windhawk-mods
-my collection of windhawk mods
+my personal collection of windhawk mods
