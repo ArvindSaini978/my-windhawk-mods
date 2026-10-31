@@ -20,7 +20,7 @@ This documentation text should be extracted into `mods/test-mod.md`.
 
 // This C++ code should NOT appear in the documentation or table
 BOOL Wh_ModInit() {
-    int secret_variable = 42;
+    int secret_variable = 43;
     return TRUE;
 }
 
