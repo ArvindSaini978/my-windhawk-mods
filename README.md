@@ -7,6 +7,10 @@ My personal collection of Windhawk mods.
 ## Available Mods
 
 <!-- MODS_TABLE_START -->
+| Mod | Description | Version | Source |
+| :--- | :--- | :--- | :--- |
+| Dynamic Explorer Command Bar | Add custom buttons and menus to the Windows 11 File Explorer command bar with dynamic file-type filtering, tokens, and secondary bar docking | `v1.0.0` | [View Code](./mods/dynamic-explorer-command-bar.wh.cpp) |
+| WinRAR Tweaks (Close on Esc & Dynamic Size) | Closes WinRAR on Esc (modal-aware) and converts file sizes in Size and Packed columns to KB, MB, GB, TB. | `v1.0.0` | [View Code](./mods/winrar-tweaks.wh.cpp) |
 <!-- MODS_TABLE_END -->
 
 ---
