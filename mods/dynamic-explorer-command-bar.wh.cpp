@@ -19,7 +19,7 @@
 
 Customize, automate, and extend the **Windows 11 File Explorer command bar** with your own buttons, dropdown menus, smart argument tokens, and dynamic extension-based visibility rules.
 
-![Dynamic Command Bar Demo](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/refs/heads/master/preview-command-bar.gif)
+![Dynamic Command Bar Demo](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/refs/heads/master/assets/decb_preview.gif)
 
 Designed for Windows 11 with the WinAppSDK (WinUI 3) File Explorer.
 
