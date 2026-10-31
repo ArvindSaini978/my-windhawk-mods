@@ -49,23 +49,30 @@ def generate_markdown_table():
     if not os.path.exists(MODS_DIR):
         return "_No mods directory found._"
 
-    # Only inspect .wh.cpp files inside mods/
-    mod_files = sorted([
+    # Find all .wh.cpp files inside mods/
+    mod_files = [
         f for f in os.listdir(MODS_DIR) 
         if f.endswith(".wh.cpp") and not f.startswith(".")
-    ])
+    ]
 
     if not mod_files:
         return "_No mods available currently._"
+
+    # Parse metadata for all mods
+    parsed_mods = []
+    for filename in mod_files:
+        filepath = os.path.join(MODS_DIR, filename)
+        parsed_mods.append(parse_mod_metadata(filepath))
+
+    # Sort alphabetically by Mod display name (case-insensitive)
+    parsed_mods.sort(key=lambda item: item["name"].lower())
 
     rows = [
         "| Mod | Description | Version | Source |",
         "| :--- | :--- | :--- | :--- |"
     ]
 
-    for filename in mod_files:
-        filepath = os.path.join(MODS_DIR, filename)
-        info = parse_mod_metadata(filepath)
+    for info in parsed_mods:
         rows.append(
             f"| {info['name']} | {info['desc']} | `v{info['version']}` | [View Code]({info['file_link']}) |"
         )
@@ -94,7 +101,7 @@ def update_readme():
     with open(README_FILE, "w", encoding="utf-8") as f:
         f.write(new_readme_text)
 
-    print("Successfully updated README.md.")
+    print("Successfully updated README.md in alphabetical order.")
 
 if __name__ == "__main__":
     update_readme()
