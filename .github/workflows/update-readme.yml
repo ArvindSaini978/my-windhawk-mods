@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md mods/*.md
+          git add README.md mods/
           if git diff --staged --quiet; then
             echo "No documentation or metadata changes detected. Skipping commit."
           else
