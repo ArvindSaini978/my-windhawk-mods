@@ -74,7 +74,7 @@ def generate_markdown_table():
 
     for info in parsed_mods:
         rows.append(
-            f"| {info['name']} | {info['desc']} | `v{info['version']}` | [View Code]({info['file_link']}) |"
+            f"| {info['name']} | {info['desc']} | `v{info['version']}` | [Code]({info['file_link']}) |"
         )
 
     return "\n".join(rows)
