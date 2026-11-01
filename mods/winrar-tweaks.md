@@ -30,7 +30,7 @@ All-in-one quality-of-life enhancements for **WinRAR** that modernize navigation
 
 ## ⚠️ Compatibility & Notes
 
-* **Refreshing After Changing Settings:** If you toggle the *Human-Readable File Sizes* setting on or off while WinRAR is open, please press **`F5`** or navigate to another folder and back to refresh the file list with the updated size format.
+* **Refreshing After Changing Settings or Disabling:** If you toggle the *Human-Readable File Sizes* setting on or off, or disable/remove the mod while WinRAR is open, please press **`F5`** or navigate to another folder and back to refresh the file list with the updated size format.
 * **Supported Column Languages:** Out-of-the-box header detection supports English (`Size`, `Packed`) as well as common localized headers (`Размер`, `Сжатый`, `Größe`, `Gepackt`, `Taille`, `Compressé`, `Tamaño`, `Comprimido`).
 * **Sorting Behavior:** Because WinRAR sorts internal archive records prior to display formatting, sorting by Size or Packed continues to sort accurately by exact byte count.
 
