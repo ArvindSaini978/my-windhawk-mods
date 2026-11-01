@@ -38,7 +38,7 @@ All-in-one quality-of-life enhancements for **WinRAR** that modernize navigation
 
 ### 🧩 More from this author
 * **[Drag to Scroll](https://windhawk.net/mods/drag-to-scroll)** – Hold `Ctrl + Right-Click` and drag to scroll smoothly across desktop applications.
-* **[Explorer Custom Shortcuts](https://windhawk.net/mods/explorer-custom-shortcuts)** – Customizable keyboard shortcuts for File Explorer.
+* **[Explorer Custom Shortcuts](https://windhawk.net/mods/explorer-custom-shortcuts)** – Customizable keyboard shortcuts for File Explorer: open terminal, copy paths, create files/folders, toggle hidden items, and launch apps with hotkeys.
 
 ### Author & Attribution
 * **Created and maintained by ArvindSaini978 ([GitHub](https://github.com/ArvindSaini978)).**
