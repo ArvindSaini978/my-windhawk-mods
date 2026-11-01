@@ -19,6 +19,8 @@ Designed for Windows 11 with the WinAppSDK (WinUI 3) File Explorer.
 * **Batch Spawning (`%sel_each%`)** — Automatically launch an application instance for each highlighted item with built-in safety throttling.
 * **Secondary Command Bar Placement** — Dock custom actions on the right side of the command bar (next to the Details/Preview pane toggles) for a clean dual-toolbar layout.
 * **Theme-Aware & Executable Icons** — Support fluent Segoe glyphs (browse codes on [Segoe Fluent Icons](https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-fluent-icons-font)), short application names runnable via Run or Terminal (`cmd.exe`, `notepad.exe`, `winrar.exe`), local file paths (`.exe` / `.dll` / `.ico`), Store apps (`shell:AppsFolder\...`), and dual Light/Dark icons via `LightPath | DarkPath` syntax.
+* **Hide Built-in Explorer Buttons** — * **Hide Built-in Explorer Buttons** — Declutter your toolbar by selectively hiding native Windows 11 commands (Cut, Copy, Paste, Share, Sort, View, 'See more'), contextual tools (Rotate, Extract all), and the Details pane toggle.
+* **Rename Native Buttons** — Save horizontal space by customizing the text labels of default system actions (e.g., shorten "Empty Recycle Bin" to "Empty bin", or "Details pane" to "Info").
 * **Open on Hover** — Open dropdown menus smoothly on cursor hover.
 
 ---
