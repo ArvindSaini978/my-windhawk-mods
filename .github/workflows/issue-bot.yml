@@ -18,5 +18,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '👋 Thanks for opening this issue! I have received a notification and will reply as soon as possible.'
+              body: '👋 Thanks for opening this issue! The maintainer has been notified and will reply as soon as possible.'
             })
