@@ -101,6 +101,13 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 - enable_cruising: false
   $name: "Continuous Cruising (Hold Ctrl)"
   $description: "Let go of Right-Click while still holding Ctrl to let the page keep scrolling on its own. Disengages on any click or keypress."
+- cruise_anchor: "Ctrl"
+  $name: "Cruising Anchor Key"
+  $description: "Which button should keep the page cruising when the other is released?"
+  $options:
+    - "Ctrl": "Hold Ctrl (Release Right-Click)"
+    - "RMB": "Hold Right-Click (Release Ctrl)"
+    - "Either": "Either (Release one, hold the other)"
 - allow_out_of_bounds: false
   $name: "Allow Out-of-Bounds Dragging"
   $description: "Continue scrolling even if the mouse cursor leaves the application window while dragging."
@@ -143,6 +150,7 @@ struct ModSettings {
     bool smooth_wheel = true;
     bool enable_horizontal = true;
     bool allow_out_of_bounds = false;
+    int cruise_anchor = 0;
 };
 
 static ModSettings g_settings;
@@ -176,6 +184,8 @@ static HANDLE g_stopEvent = nullptr;
 static HANDLE g_cruiseEvent = nullptr;
 static std::atomic<bool> g_threadCreated{false};
 
+enum class CruiseAnchor { Ctrl, Rmb };
+
 struct CruiseContext {
     POINT anchorPt;
     RECT windowBounds;
@@ -188,6 +198,7 @@ struct CruiseContext {
     DragAxis axis;
     HWND targetHwnd;
     bool isDiscrete;
+    CruiseAnchor anchor;
 };
 static CruiseContext g_cruiseCtx;
 static CRITICAL_SECTION g_cruiseCs;
@@ -330,6 +341,13 @@ static inline bool IsCtrlPhysicallyDown() {
     return (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 }
 
+static inline bool IsRmbPhysicallyDown() {
+    if (pfnGetAsyncKeyState_Original) {
+        return (pfnGetAsyncKeyState_Original(VK_RBUTTON) & 0x8000) != 0;
+    }
+    return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+}
+
 static inline bool IsInterruptKeyPressed() {
     // Check standard navigation / cancel keys that might bypass DispatchMessage
     static const int s_interruptKeys[] = {
@@ -365,6 +383,15 @@ void LoadSettings() {
     g_settings.enable_horizontal = Wh_GetIntSetting(L"enable_horizontal") != 0;
     g_settings.allow_out_of_bounds =
         Wh_GetIntSetting(L"allow_out_of_bounds") != 0;
+    PCWSTR anchorStr = Wh_GetStringSetting(L"cruise_anchor");
+    g_settings.cruise_anchor = 0;  // Default to Ctrl
+    if (anchorStr) {
+        if (wcscmp(anchorStr, L"RMB") == 0)
+            g_settings.cruise_anchor = 1;
+        else if (wcscmp(anchorStr, L"Either") == 0)
+            g_settings.cruise_anchor = 2;
+        Wh_FreeStringSetting(anchorStr);
+    }
 }
 
 void Wh_ModSettingsChanged() {
@@ -507,7 +534,13 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
             if (WaitForSingleObject(g_stopEvent, 0) == WAIT_OBJECT_0)
                 return 0;
 
-            if (!IsCtrlPhysicallyDown() || IsInterruptKeyPressed()) {
+            bool anchorLost = false;
+            if (ctx.anchor == CruiseAnchor::Ctrl && !IsCtrlPhysicallyDown())
+                anchorLost = true;
+            if (ctx.anchor == CruiseAnchor::Rmb && !IsRmbPhysicallyDown())
+                anchorLost = true;
+
+            if (anchorLost || IsInterruptKeyPressed()) {
                 g_state.store(ScrollState::Idle);
                 SetCursor(LoadCursor(nullptr, IDC_ARROW));
                 break;
@@ -585,7 +618,7 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
     return 0;
 }
 
-void StartCruiseThreadIfNeeded() {
+void StartCruiseThreadIfNeeded(CruiseAnchor anchor) {
     EnterCriticalSection(&g_cruiseCs);
     g_cruiseCtx.anchorPt = g_anchorPt;
     g_cruiseCtx.windowBounds = g_windowBounds;
@@ -598,6 +631,7 @@ void StartCruiseThreadIfNeeded() {
     g_cruiseCtx.axis = g_activeAxis;
     g_cruiseCtx.targetHwnd = g_scrollTargetHwnd;
     g_cruiseCtx.isDiscrete = g_scrollTargetIsDiscrete;
+    g_cruiseCtx.anchor = anchor;
 
     LeaveCriticalSection(&g_cruiseCs);
 
@@ -719,11 +753,30 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
         if (pMsg->wParam == VK_CONTROL) {
             if (!IsCtrlPhysicallyDown()) {
                 ScrollState cur = g_state.load();
-                if (cur == ScrollState::Cruising ||
-                    cur == ScrollState::Scrolling) {
+                bool enteringCruise =
+                    (cur == ScrollState::Scrolling &&
+                     g_settings.enable_cruising && IsRmbPhysicallyDown() &&
+                     (g_settings.cruise_anchor == 1 ||
+                      g_settings.cruise_anchor == 2));
+
+                if (enteringCruise) {
+                    g_state.store(ScrollState::Cruising);
+                    UpdateScrollCursor();
+                    StartCruiseThreadIfNeeded(CruiseAnchor::Rmb);
+                } else if (cur == ScrollState::Cruising ||
+                           cur == ScrollState::Scrolling) {
                     g_lastScrollEndTime.store(GetTickCount64());
                     g_state.store(ScrollState::Idle);
                     SetCursor(LoadCursor(nullptr, IDC_ARROW));
+                    if (g_captureHwnd && GetCapture() == g_captureHwnd)
+                        ReleaseCapture();
+                    if (g_captureHwnd) {
+                        SendScrollMessage(g_captureHwnd, WM_VSCROLL,
+                                          SB_ENDSCROLL);
+                        SendScrollMessage(g_captureHwnd, WM_HSCROLL,
+                                          SB_ENDSCROLL);
+                    }
+                    g_captureHwnd = nullptr;
                 }
             }
             return false;
@@ -800,6 +853,10 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
 
     if (m == WM_MOUSEMOVE) {
         ScrollState cur = g_state.load();
+        if (cur == ScrollState::Cruising) {
+            UpdateScrollCursor();
+            return true;
+        }
         if (cur == ScrollState::Pending || cur == ScrollState::Scrolling) {
             POINT curPt;
             GetCursorPos(&curPt);
@@ -926,7 +983,8 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
         ScrollState cur = g_state.load();
         bool enteringCruise =
             (cur == ScrollState::Scrolling && g_settings.enable_cruising &&
-             IsCtrlPhysicallyDown());
+             IsCtrlPhysicallyDown() &&
+             (g_settings.cruise_anchor == 0 || g_settings.cruise_anchor == 2));
 
         if (!enteringCruise) {
             if (g_captureHwnd && GetCapture() == g_captureHwnd)
@@ -952,7 +1010,9 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
         } else if (enteringCruise) {
             g_state.store(ScrollState::Cruising);
             UpdateScrollCursor();
-            StartCruiseThreadIfNeeded();
+            if (g_captureHwnd)
+                SetCapture(g_captureHwnd);
+            StartCruiseThreadIfNeeded(CruiseAnchor::Ctrl);
         } else {
             if (cur == ScrollState::Scrolling)
                 g_lastScrollEndTime.store(GetTickCount64());
