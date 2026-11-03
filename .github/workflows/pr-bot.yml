@@ -1,11 +1,12 @@
-name: Auto Comment on New PR
+name: CI
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened]
 
 jobs:
-  auto-comment:
+  pr-notice:
+    name: PR Notice
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write 
