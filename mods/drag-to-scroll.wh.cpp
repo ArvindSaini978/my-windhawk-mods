@@ -55,7 +55,7 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 * 🎯 **Smart Straight-Line Panning:** No more accidental diagonal wobbling when reading documents or scanning spreadsheets. Move up/down or left/right, and the mod keeps your movement locked straight on track.
 * 👁️ **High-Contrast, All-Surface Cursors:** Custom drag cursors with protective contours are built directly into the mod. Whether you use pure Dark Mode, bright white documents, or customized themes, the cursor stays crisp, sharp, and easy to follow.
 * 🔍 **Zero Accidental Zooming:** Holding `Ctrl` while scrolling in web browsers usually messes up your page zoom. This mod automatically shields your browser during both the drag and the gentle stop, so you never accidentally blow up text or shrink your screen.
-* 🚀 **Flick & Glide Dynamic Speed:** Drag slowly for comfortable, line-by-line reading, or flick your mouse quickly to fly across lengthy web pages and documents.
+* 🚀 **Dynamic Velocity Modes:** Choose your preferred flick responsiveness (`Off`, `Gentle`, `Standard`, `Fast`, or `Ultra Fast`) to scale from pure 1:1 precision to high-speed traversal across long documents.
 * 🪟 **Seamless Out-of-Bounds Dragging:** Don't worry about keeping your mouse perfectly inside the app. You can drag right off the edge of the window or screen and the page will just keep scrolling.
 * 📱 **Touchscreen or Traditional Feel:** Choose between natural pull-to-scroll (moving down drags content down, just like a phone or tablet) or classic wheel style in settings.
 
@@ -123,12 +123,21 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 - deadzone: 5
   $name: "Drag Deadzone (Pixels)"
   $description: "Small buffer before scrolling begins. Clicking without dragging still acts like a normal right-click."
-- enable_velocity: true
-  $name: "Dynamic Velocity Scaling"
-  $description: "Move slowly for precise line-by-line reading, or flick quickly to speed through long pages."
+- velocity_mode: "Standard"
+  $name: "Dynamic Velocity Mode"
+  $description: "Scales scroll speed with mouse movement—flick quickly to fly through pages, or drag slowly for exact line-by-line control."
+  $options:
+    - "Off": "Off (Strict 1:1 - No Flick Boost)"
+    - "Gentle": "Gentle (Very Subtle Boost)"
+    - "Standard": "Standard (Smooth & Controlled)"
+    - "Fast": "Fast (Strong Flick Boost)"
+    - "UltraFast": "Ultra Fast (Extreme Speed)"
 - smooth_wheel: true
   $name: "Ultra-Smooth Scrolling"
   $description: "Enables silky, trackpad-style smooth scrolling. Disable this if scrolling feels jittery or unresponsive in older programs."
+- enable_velocity: true
+  $name: "[Deprecated] Old Velocity Toggle"
+  $description: "Replaced by Dynamic Velocity Mode. This toggle is kept to prevent update errors for older versions but no longer does anything."
 */
 // ==/WindhawkModSettings==
 
@@ -149,14 +158,14 @@ constexpr int SMOOTH_SCROLL_CHUNK = 15;
 
 struct ModSettings {
     bool touch_style = true;
-    bool enable_cruising = false;
-    double pixels_per_notch = 45.0;
-    int deadzone = 5;
-    bool enable_velocity = true;
-    bool smooth_wheel = true;
     bool enable_horizontal = true;
     bool allow_out_of_bounds = false;
+    bool enable_cruising = false;
     int cruise_anchor = 0;
+    double pixels_per_notch = 45.0;
+    int deadzone = 5;
+    int velocity_mode = 2;
+    bool smooth_wheel = true;
 };
 
 static ModSettings g_settings;
@@ -380,15 +389,10 @@ static inline bool IsInScrollOrGracePeriod() {
 
 void LoadSettings() {
     g_settings.touch_style = Wh_GetIntSetting(L"touch_style") != 0;
-    g_settings.enable_cruising = Wh_GetIntSetting(L"enable_cruising") != 0;
-    g_settings.pixels_per_notch = static_cast<double>(
-        std::max(10, Wh_GetIntSetting(L"pixels_per_notch")));
-    g_settings.deadzone = std::clamp(Wh_GetIntSetting(L"deadzone"), 0, 1000);
-    g_settings.enable_velocity = Wh_GetIntSetting(L"enable_velocity") != 0;
-    g_settings.smooth_wheel = Wh_GetIntSetting(L"smooth_wheel") != 0;
     g_settings.enable_horizontal = Wh_GetIntSetting(L"enable_horizontal") != 0;
     g_settings.allow_out_of_bounds =
         Wh_GetIntSetting(L"allow_out_of_bounds") != 0;
+    g_settings.enable_cruising = Wh_GetIntSetting(L"enable_cruising") != 0;
     PCWSTR anchorStr = Wh_GetStringSetting(L"cruise_anchor");
     g_settings.cruise_anchor = 0;  // Default to Ctrl
     if (anchorStr) {
@@ -398,6 +402,31 @@ void LoadSettings() {
             g_settings.cruise_anchor = 2;
         Wh_FreeStringSetting(anchorStr);
     }
+    g_settings.pixels_per_notch = static_cast<double>(
+        std::max(10, Wh_GetIntSetting(L"pixels_per_notch")));
+    g_settings.deadzone = std::clamp(Wh_GetIntSetting(L"deadzone"), 0, 1000);
+
+    // Dynamic Velocity Mode with migration fallback for v1.1.0/v1.2.0 users
+    PCWSTR velStr = Wh_GetStringSetting(L"velocity_mode");
+    if (velStr) {
+        if (wcscmp(velStr, L"Off") == 0)
+            g_settings.velocity_mode = 0;
+        else if (wcscmp(velStr, L"Gentle") == 0)
+            g_settings.velocity_mode = 1;
+        else if (wcscmp(velStr, L"Standard") == 0)
+            g_settings.velocity_mode = 2;
+        else if (wcscmp(velStr, L"Fast") == 0)
+            g_settings.velocity_mode = 3;
+        else if (wcscmp(velStr, L"UltraFast") == 0)
+            g_settings.velocity_mode = 4;
+        Wh_FreeStringSetting(velStr);
+    } else {
+        // Fallback: If they explicitly turned off the old toggle, map them to
+        // Off (0). Otherwise, default to Standard (2).
+        int legacyEnableVel = Wh_GetIntSetting(L"enable_velocity");
+        g_settings.velocity_mode = (legacyEnableVel == 0) ? 0 : 2;
+    }
+    g_settings.smooth_wheel = Wh_GetIntSetting(L"smooth_wheel") != 0;
 }
 
 void Wh_ModSettingsChanged() {
@@ -920,12 +949,35 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
                 bool isDiscrete = g_scrollTargetIsDiscrete;
 
                 double velocityFactor = 1.0;
-                if (g_settings.enable_velocity) {
+                if (g_settings.velocity_mode > 0) {
                     double instantDist = std::hypot(rawDx, rawDy);
                     double smoothDist = std::hypot(g_smoothDx, g_smoothDy);
                     double speed = (instantDist * 0.7) + (smoothDist * 0.3);
+
+                    double slope = 0.02;
+                    double maxCap = 1.6;
+
+                    switch (g_settings.velocity_mode) {
+                        case 1:
+                            slope = 0.01;
+                            maxCap = 1.3;
+                            break;  // Gentle
+                        case 2:
+                            slope = 0.02;
+                            maxCap = 1.6;
+                            break;  // Standard
+                        case 3:
+                            slope = 0.05;
+                            maxCap = 2.5;
+                            break;  // Fast
+                        case 4:
+                            slope = 0.09;
+                            maxCap = 4.0;
+                            break;  // UltraFast
+                    }
+
                     velocityFactor =
-                        std::clamp(0.85 + (speed * 0.08), 0.85, 3.5);
+                        std::clamp(1.0 + (speed * slope), 1.0, maxCap);
                 }
 
                 if (isDiscrete && hTarget) {
