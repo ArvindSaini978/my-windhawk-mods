@@ -2,7 +2,7 @@
 // @id              drag-to-scroll
 // @name            Drag to Scroll
 // @description     Hold Ctrl + Right-Click and drag to scroll smoothly in desktop applications with adaptive line precision, dynamic velocity, and hands-free cruising.
-// @version         1.1.0
+// @version         1.2.0
 // @author          ArvindSaini978
 // @github          https://github.com/ArvindSaini978
 // @license         MIT
@@ -101,6 +101,9 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 - enable_cruising: false
   $name: "Continuous Cruising (Hold Ctrl)"
   $description: "Let go of Right-Click while still holding Ctrl to let the page keep scrolling on its own. Disengages on any click or keypress."
+- allow_out_of_bounds: false
+  $name: "Allow Out-of-Bounds Dragging"
+  $description: "Continue scrolling even if the mouse cursor leaves the application window while dragging."
 - pixels_per_notch: 45
   $name: "Drag Distance per Step (Pixels)"
   $description: "Distance in pixels required to trigger one scroll step (minimum 10 px). Lower numbers scroll faster; higher numbers make it gentler and more controlled."
@@ -139,6 +142,7 @@ struct ModSettings {
     bool enable_velocity = true;
     bool smooth_wheel = true;
     bool enable_horizontal = true;
+    bool allow_out_of_bounds = false;
 };
 
 static ModSettings g_settings;
@@ -150,6 +154,8 @@ static std::atomic<UINT> g_swallowButtonUp{0};
 
 enum class DragAxis { VerticalOnly, HorizontalOnly };
 static DragAxis g_activeAxis = DragAxis::VerticalOnly;
+static HWND g_scrollTargetHwnd = nullptr;
+static bool g_scrollTargetIsDiscrete = false;
 
 static POINT g_anchorPt = {0, 0};
 static POINT g_lastPt = {0, 0};
@@ -178,7 +184,10 @@ struct CruiseContext {
     bool touch_style;
     bool smooth_wheel;
     bool enable_horizontal;
+    bool allow_out_of_bounds;
     DragAxis axis;
+    HWND targetHwnd;
+    bool isDiscrete;
 };
 static CruiseContext g_cruiseCtx;
 static CRITICAL_SECTION g_cruiseCs;
@@ -354,6 +363,8 @@ void LoadSettings() {
     g_settings.enable_velocity = Wh_GetIntSetting(L"enable_velocity") != 0;
     g_settings.smooth_wheel = Wh_GetIntSetting(L"smooth_wheel") != 0;
     g_settings.enable_horizontal = Wh_GetIntSetting(L"enable_horizontal") != 0;
+    g_settings.allow_out_of_bounds =
+        Wh_GetIntSetting(L"allow_out_of_bounds") != 0;
 }
 
 void Wh_ModSettingsChanged() {
@@ -437,39 +448,45 @@ void SendScrollMessage(HWND hTarget, UINT msg, WPARAM cmd) {
     }
 }
 
-void DispatchScroll(int notchCount, HWND hTarget, bool isDiscrete) {
+void DispatchScroll(int notchCount, HWND hTarget, bool isDiscrete, POINT pt) {
     if (notchCount == 0)
         return;
-
     if (isDiscrete && hTarget) {
         WPARAM cmd = (notchCount > 0) ? SB_LINEUP : SB_LINEDOWN;
         int count = std::abs(notchCount);
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i)
             SendScrollMessage(hTarget, WM_VSCROLL, cmd);
-        }
     } else {
         int chunkSize =
             g_settings.smooth_wheel ? SMOOTH_SCROLL_CHUNK : WHEEL_DELTA;
         int deltaY = notchCount * chunkSize;
-        SendMaskedWheelAsync(deltaY);
+        if (hTarget) {
+            PostMessageW(hTarget, WM_MOUSEWHEEL, MAKEWPARAM(0, deltaY),
+                         MAKELPARAM(pt.x, pt.y));
+        } else {
+            SendMaskedWheelAsync(deltaY);
+        }
     }
 }
 
-void DispatchHScroll(int notchCount, HWND hTarget, bool isDiscrete) {
+void DispatchHScroll(int notchCount, HWND hTarget, bool isDiscrete, POINT pt) {
     if (notchCount == 0)
         return;
-
     if (isDiscrete && hTarget) {
         WPARAM cmd = (notchCount > 0) ? SB_LINERIGHT : SB_LINELEFT;
         int count = std::abs(notchCount);
-        for (int i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i)
             SendScrollMessage(hTarget, WM_HSCROLL, cmd);
-        }
     } else {
         int chunkSize =
             g_settings.smooth_wheel ? SMOOTH_SCROLL_CHUNK : WHEEL_DELTA;
         int deltaX = notchCount * chunkSize;
-        SendMaskedHWheelAsync(deltaX);
+        if (hTarget) {
+            PostMessageW(hTarget, WM_MOUSEHWHEEL, MAKEWPARAM(0, deltaX),
+                         MAKELPARAM(pt.x, pt.y));
+        } else {
+            SendMaskedHWheelAsync(deltaX);
+        }
     }
 }
 
@@ -498,7 +515,8 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
 
             POINT curPt;
             GetCursorPos(&curPt);
-            if (!PtInRect(&ctx.windowBounds, curPt)) {
+            if (!ctx.allow_out_of_bounds &&
+                !PtInRect(&ctx.windowBounds, curPt)) {
                 g_state.store(ScrollState::Idle);
                 SetCursor(LoadCursor(nullptr, IDC_ARROW));
                 break;
@@ -512,8 +530,8 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
             if (ctx.axis == DragAxis::HorizontalOnly)
                 distY = 0;
 
-            HWND hTarget = nullptr;
-            bool isDiscrete = GetScrollTargetInfo(curPt, hTarget);
+            HWND hTarget = ctx.targetHwnd;
+            bool isDiscrete = ctx.isDiscrete;
 
             if (ctx.axis == DragAxis::VerticalOnly &&
                 std::abs(distY) >= ctx.deadzone) {
@@ -524,7 +542,7 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
                 if (isDiscrete) {
                     cruiseAccumY += notchRateY * directionY * 0.035 * 3.0;
                     if (int lines = TakeWholeSteps(cruiseAccumY, 1)) {
-                        DispatchScroll(lines, hTarget, true);
+                        DispatchScroll(lines, hTarget, true, ctx.anchorPt);
                     }
                 } else {
                     double unitsThisTickY =
@@ -533,7 +551,7 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
                     int step =
                         ctx.smooth_wheel ? SMOOTH_SCROLL_CHUNK : WHEEL_DELTA;
                     if (int chunks = TakeWholeSteps(cruiseAccumY, step)) {
-                        DispatchScroll(chunks, hTarget, false);
+                        DispatchScroll(chunks, hTarget, false, ctx.anchorPt);
                     }
                 }
             } else if (ctx.axis == DragAxis::HorizontalOnly &&
@@ -546,7 +564,7 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
                 if (isDiscrete) {
                     cruiseAccumX += notchRateX * directionX * 0.035 * 3.0;
                     if (int chars = TakeWholeSteps(cruiseAccumX, 1)) {
-                        DispatchHScroll(chars, hTarget, true);
+                        DispatchHScroll(chars, hTarget, true, ctx.anchorPt);
                     }
                 } else {
                     double unitsThisTickX =
@@ -555,7 +573,7 @@ DWORD WINAPI CruiseWorkerThread(LPVOID) {
                     int step =
                         ctx.smooth_wheel ? SMOOTH_SCROLL_CHUNK : WHEEL_DELTA;
                     if (int chunks = TakeWholeSteps(cruiseAccumX, step)) {
-                        DispatchHScroll(chunks, hTarget, false);
+                        DispatchHScroll(chunks, hTarget, false, ctx.anchorPt);
                     }
                 }
             }
@@ -576,7 +594,11 @@ void StartCruiseThreadIfNeeded() {
     g_cruiseCtx.touch_style = g_settings.touch_style;
     g_cruiseCtx.smooth_wheel = g_settings.smooth_wheel;
     g_cruiseCtx.enable_horizontal = g_settings.enable_horizontal;
+    g_cruiseCtx.allow_out_of_bounds = g_settings.allow_out_of_bounds;
     g_cruiseCtx.axis = g_activeAxis;
+    g_cruiseCtx.targetHwnd = g_scrollTargetHwnd;
+    g_cruiseCtx.isDiscrete = g_scrollTargetIsDiscrete;
+
     LeaveCriticalSection(&g_cruiseCs);
 
     bool expected = false;
@@ -632,6 +654,13 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
     ULONG_PTR extra = GetMessageExtraInfo();
     if (extra == REPLAY_EXTRA_INFO)
         return false;
+    if (g_captureHwnd && g_state.load() == ScrollState::Idle) {
+        if (GetCapture() == g_captureHwnd)
+            ReleaseCapture();
+        SendScrollMessage(g_captureHwnd, WM_VSCROLL, SB_ENDSCROLL);
+        SendScrollMessage(g_captureHwnd, WM_HSCROLL, SB_ENDSCROLL);
+        g_captureHwnd = nullptr;
+    }
 
     if (m == WM_LBUTTONDOWN || m == WM_LBUTTONDBLCLK || m == WM_RBUTTONDOWN ||
         m == WM_RBUTTONDBLCLK || m == WM_MBUTTONDOWN || m == WM_MBUTTONDBLCLK ||
@@ -745,6 +774,10 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
 
             GetCursorPos(&g_anchorPt);
             g_lastPt = g_anchorPt;
+            g_scrollTargetIsDiscrete =
+                GetScrollTargetInfo(g_anchorPt, g_scrollTargetHwnd);
+            if (!g_scrollTargetHwnd)
+                g_scrollTargetHwnd = WindowFromPoint(g_anchorPt);
             g_accumY = 0.0;
             g_accumX = 0.0;
             g_smoothDx = 0.0;
@@ -770,8 +803,10 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
         if (cur == ScrollState::Pending || cur == ScrollState::Scrolling) {
             POINT curPt;
             GetCursorPos(&curPt);
-            if (!PtInRect(&g_windowBounds, curPt)) {
+            if (!g_settings.allow_out_of_bounds &&
+                !PtInRect(&g_windowBounds, curPt)) {
                 g_state.store(ScrollState::Idle);
+                SetCursor(LoadCursor(nullptr, IDC_ARROW));
                 return false;
             }
 
@@ -818,8 +853,8 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
                                 ? static_cast<double>(rawDy)
                                 : 0.0;
 
-                HWND hTarget = nullptr;
-                bool isDiscrete = GetScrollTargetInfo(curPt, hTarget);
+                HWND hTarget = g_scrollTargetHwnd;
+                bool isDiscrete = g_scrollTargetIsDiscrete;
 
                 double velocityFactor = 1.0;
                 if (g_settings.enable_velocity) {
@@ -837,7 +872,7 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
                         int notchStep =
                             static_cast<int>(g_settings.pixels_per_notch);
                         if (int lines = TakeWholeSteps(g_accumY, notchStep)) {
-                            DispatchScroll(lines, hTarget, true);
+                            DispatchScroll(lines, hTarget, true, g_anchorPt);
                         }
                     } else if (g_activeAxis == DragAxis::HorizontalOnly &&
                                dx != 0.0 && g_settings.enable_horizontal) {
@@ -846,7 +881,7 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
                         int notchStep =
                             static_cast<int>(g_settings.pixels_per_notch);
                         if (int chars = TakeWholeSteps(g_accumX, notchStep)) {
-                            DispatchHScroll(chars, hTarget, true);
+                            DispatchHScroll(chars, hTarget, true, g_anchorPt);
                         }
                     }
                 } else {
@@ -863,7 +898,8 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
 
                         if (int notchesY =
                                 TakeWholeSteps(g_accumY, stepUnits)) {
-                            DispatchScroll(notchesY, nullptr, false);
+                            DispatchScroll(notchesY, hTarget, false,
+                                           g_anchorPt);
                         }
                     } else if (g_activeAxis == DragAxis::HorizontalOnly &&
                                dx != 0.0 && g_settings.enable_horizontal) {
@@ -873,7 +909,8 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
 
                         if (int notchesX =
                                 TakeWholeSteps(g_accumX, stepUnits)) {
-                            DispatchHScroll(notchesX, nullptr, false);
+                            DispatchHScroll(notchesX, hTarget, false,
+                                            g_anchorPt);
                         }
                     }
                 }
@@ -885,17 +922,22 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
 
     if (m == WM_RBUTTONUP && g_swallowRButtonUp.load()) {
         g_swallowRButtonUp.store(false);
-        if (g_captureHwnd && GetCapture() == g_captureHwnd) {
-            ReleaseCapture();
-        }
-
-        if (g_captureHwnd) {
-            SendScrollMessage(g_captureHwnd, WM_VSCROLL, SB_ENDSCROLL);
-            SendScrollMessage(g_captureHwnd, WM_HSCROLL, SB_ENDSCROLL);
-        }
-        g_captureHwnd = nullptr;
 
         ScrollState cur = g_state.load();
+        bool enteringCruise =
+            (cur == ScrollState::Scrolling && g_settings.enable_cruising &&
+             IsCtrlPhysicallyDown());
+
+        if (!enteringCruise) {
+            if (g_captureHwnd && GetCapture() == g_captureHwnd)
+                ReleaseCapture();
+            if (g_captureHwnd) {
+                SendScrollMessage(g_captureHwnd, WM_VSCROLL, SB_ENDSCROLL);
+                SendScrollMessage(g_captureHwnd, WM_HSCROLL, SB_ENDSCROLL);
+            }
+            g_captureHwnd = nullptr;
+        }
+
         if (cur == ScrollState::Pending) {
             g_state.store(ScrollState::Idle);
             SetCursor(LoadCursor(nullptr, IDC_ARROW));
@@ -907,15 +949,13 @@ bool ProcessScrollInput(MSG* pMsg, bool canMutate) {
             inputs[1].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
             inputs[1].mi.dwExtraInfo = REPLAY_EXTRA_INFO;
             SendInput(2, inputs, sizeof(INPUT));
-        } else if (cur == ScrollState::Scrolling &&
-                   g_settings.enable_cruising && IsCtrlPhysicallyDown()) {
+        } else if (enteringCruise) {
             g_state.store(ScrollState::Cruising);
             UpdateScrollCursor();
             StartCruiseThreadIfNeeded();
         } else {
-            if (cur == ScrollState::Scrolling) {
+            if (cur == ScrollState::Scrolling)
                 g_lastScrollEndTime.store(GetTickCount64());
-            }
             g_state.store(ScrollState::Idle);
             SetCursor(LoadCursor(nullptr, IDC_ARROW));
         }
