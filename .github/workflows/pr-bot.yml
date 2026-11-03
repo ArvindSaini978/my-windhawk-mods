@@ -1,0 +1,22 @@
+name: Auto Comment on New PR
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  auto-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write 
+    steps:
+      - name: Post welcome comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 Thanks for submitting this pull request! The maintainer has been notified and will review your changes as soon as possible.'
+            })
