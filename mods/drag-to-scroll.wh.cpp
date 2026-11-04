@@ -1230,7 +1230,9 @@ struct InputEngine {
             return false;
         }
 
-        // Enforce custom cursor on WM_SETCURSOR while dragging or cruising
+        // Enforce custom cursor on WM_SETCURSOR while dragging or cruising,
+        // or restore arrow cursor if cruise ended while RMB capture is still
+        // held
         if (m == WM_SETCURSOR) {
             ScrollTypes::ScrollState st =
                 RuntimeState::state.load(std::memory_order_acquire);
@@ -1238,6 +1240,11 @@ struct InputEngine {
                 CursorManager::ApplyScrollCursor(
                     st,
                     RuntimeState::activeAxis.load(std::memory_order_relaxed));
+                return true;
+            }
+            if (RuntimeState::swallowRButtonUp.load(
+                    std::memory_order_acquire)) {
+                CursorManager::RestoreArrowCursor();
                 return true;
             }
             return false;
@@ -1454,6 +1461,33 @@ struct InputEngine {
             ScrollTypes::ScrollState cur =
                 RuntimeState::state.load(std::memory_order_acquire);
             if (cur == ScrollTypes::ScrollState::Cruising) {
+                POINT curPt = {};
+                if (GetCursorPos(&curPt) && !cfg.allow_out_of_bounds &&
+                    !PtInRect(&RuntimeState::windowBounds, curPt)) {
+                    HWND hDisc = nullptr;
+                    bool isDisc = false;
+                    {
+                        ScopedCriticalSection lock(&RuntimeState::stateCs);
+                        if (RuntimeState::state.load(
+                                std::memory_order_relaxed) ==
+                            ScrollTypes::ScrollState::Cruising) {
+                            RuntimeState::lastScrollEndTime.store(
+                                GetTickCount64(), std::memory_order_relaxed);
+                            RuntimeState::state.store(
+                                ScrollTypes::ScrollState::Idle,
+                                std::memory_order_release);
+                            hDisc = RuntimeState::scrollTargetHwnd;
+                            isDisc = RuntimeState::scrollTargetIsDiscrete;
+                            RuntimeState::scrollTargetHwnd = nullptr;
+                            RuntimeState::scrollTargetIsDiscrete = false;
+                        }
+                    }
+                    ScrollDispatcher::EndDiscreteScroll(hDisc, isDisc);
+                    CursorManager::RestoreArrowCursor();
+                    return RuntimeState::swallowRButtonUp.load(
+                        std::memory_order_acquire);
+                }
+
                 CursorManager::ApplyScrollCursor(
                     ScrollTypes::ScrollState::Cruising,
                     RuntimeState::activeAxis.load(std::memory_order_relaxed));
@@ -1691,9 +1725,10 @@ struct InputEngine {
             }
 
             // Swallow drag mouse-moves while waiting for RMB release after
-            // out-of-bounds abort
+            // out-of-bounds abort, and ensure the arrow cursor is restored
             if (RuntimeState::swallowRButtonUp.load(
                     std::memory_order_acquire)) {
+                CursorManager::RestoreArrowCursor();
                 return true;
             }
         }
