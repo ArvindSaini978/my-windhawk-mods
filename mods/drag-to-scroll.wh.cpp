@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id              drag-to-scroll
 // @name            Drag to Scroll
-// @description     Hold Ctrl + Right-Click and drag to scroll smoothly across browsers, documents, editors, and File Explorer—with flick speed boost and hands-free cruising.
+// @description     Hold Ctrl + Right-Click (or pure Right-Click) and drag to scroll smoothly across browsers, documents, editors, and File Explorer—with flick speed boost and hands-free cruising.
 // @version         1.2.0
 // @author          ArvindSaini978
 // @github          https://github.com/ArvindSaini978
@@ -41,7 +41,7 @@
 /*
 # Drag to Scroll
 
-Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effortlessly across desktop apps—including web browsers (Chrome, Edge, Firefox), documents (Word, PDFs), code editors (VS Code), and File Explorer.
+Hold **`Ctrl` + Right-Click** (or just **Right-Click**) and drag your mouse to scroll naturally and effortlessly across desktop apps—including web browsers (Chrome, Edge, Firefox), documents (Word, PDFs), code editors (VS Code), and File Explorer.
 
 ## Vertical & Horizontal Scrolling
 ![Drag to Scroll Demo 1](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/refs/heads/master/assets/dts_preview_1.webp)
@@ -54,9 +54,10 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 
 ## ⚡ Quick Start (How to Use)
 
-* **To Scroll:** Hold down **`Ctrl`**, hold down the **Right Mouse Button**, and move your mouse up, down, left, or right.
+* **Choose Your Trigger:** Go to settings to select your preferred activation method: `Ctrl + Right-Click` (deliberate, supports cruising) or `Right-Click Only` (seamless, disables cruising).
+* **To Scroll:** Hold down your chosen trigger, and move your mouse up, down, left, or right.
 * **To Stop:** Release the Right Mouse Button.
-* **Normal Right-Click:** Regular Right-Click is completely untouched—click anywhere like you normally do to open context menus.
+* **Normal Right-Click:** Just click the Right Mouse Button in place without dragging—it passes straight through to open your context menus as usual, regardless of which trigger mode you use.
 * **Need an App's Own Ctrl + Right-Click?** Just tap `Ctrl + Right-Click` in place without moving your mouse—it passes straight through to trigger the app's native shortcut or context menu as usual.
 * **Hands-Free Cruising (Optional):** Turn on *Continuous Cruising* in settings. Drag to start moving, let go of your chosen anchor key (Ctrl or Right-Click), and the page will glide continuously on its own. Any standard mouse click, tap, or non-modifier key press stops the glide instantly.
 
@@ -64,9 +65,10 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 
 ## ✨ Why You'll Love It (Key Highlights)
 
+* 🎛️ **Customizable Triggers:** Choose between the deliberate `Ctrl + Right-Click` or the seamless `Right-Click Only` mode to perfectly match your workflow.
 * 🎯 **Smart Straight-Line Panning:** No more accidental diagonal wobbling when reading documents or scanning spreadsheets. Move up/down or left/right, and the mod keeps your movement locked straight on track.
 * 👁️ **High-Contrast, All-Surface Cursors:** Custom drag cursors with protective contours are built directly into the mod. Whether you use pure Dark Mode, bright white documents, or customized themes, the cursor stays crisp, sharp, and easy to follow.
-* 🔍 **Zero Accidental Zooming:** Holding `Ctrl` while scrolling in web browsers usually messes up your page zoom. This mod automatically shields your browser during both the drag and the gentle stop, so you never accidentally blow up text or shrink your screen.
+* 🔍 **Zero Accidental Zooming:** Holding `Ctrl` while scrolling in web browsers usually messes up your page zoom. If you use the `Ctrl + Right-Click` trigger, this mod automatically shields your browser during both the drag and the gentle stop, so you never accidentally blow up text or shrink your screen.
 * 🚀 **Dynamic Velocity Modes:** Choose your preferred flick responsiveness (`Off`, `Gentle`, `Standard`, `Fast`, or `Ultra Fast`) to scale from pure 1:1 precision to high-speed traversal across long documents.
 * 🪟 **Seamless Out-of-Bounds Dragging *(Optional*):** Enable this in settings to keep scrolling smoothly even if your mouse cursor wanders completely off the edge of the window or screen.
 * 📱 **Touchscreen or Traditional Feel:** Choose between natural pull-to-scroll (moving down drags content down, just like a phone or tablet) or classic wheel style in settings.
@@ -75,6 +77,7 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 
 ## ⚠️ Compatibility & Good to Know
 
+* **Right-Click Only Mode & Cruising:** If you select the "Right-Click Only" trigger in settings, Continuous Cruising is automatically disabled. Cruising requires the `Ctrl + Right-Click` mode to function.
 * **Cruising Cursor Visibility:** When using the "Hold Ctrl" cruising anchor, your custom drag cursor will revert to the standard Windows arrow if you move it outside the application (like over the taskbar). This happens because Windows strictly requires a physical mouse button to be held down to maintain a global cursor override. Use the "Hold Right-Click" anchor if you want the custom cursor to remain visible across the entire screen.
 * **Microsoft Store & Modern UWP Apps (Not Supported):** Modern packaged applications installed from the Microsoft Store (such as Calculator, Weather, Microsoft To Do) as well as Windows system surfaces handle input through isolated modern pointer pipelines that bypass classic Win32 mouse messages.
 * **Online Games & Anti-Cheat Protection:** Software with native `Ctrl + Right-Click` dragging shortcuts (such as Blender or CAD applications) or games protected by kernel anti-cheats (e.g., Vanguard, BattlEye, Easy Anti-Cheat) may conflict with global input hooks. You can safely exclude those specific programs under the mod's **Advanced** tab in Windhawk.
@@ -93,6 +96,12 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
 
 // ==WindhawkModSettings==
 /*
+- trigger_mode: "CtrlRMB"
+  $name: "Trigger Key Combination"
+  $description: "Select which input gesture activates drag scrolling. Continuous Cruising is only available in the Ctrl + Right-Click mode."
+  $options:
+    - "CtrlRMB": "Ctrl + Right-Click (Supports Cruising)"
+    - "RMBOnly": "Right-Click Only (Cruising Disabled)"
 - touch_style: true
   $name: "Natural / Touchscreen Scrolling"
   $description: "Drag down to pull content down (like a touchscreen). Disable to scroll like a standard mouse wheel."
@@ -104,7 +113,7 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
   $description: "Continue scrolling even if the mouse cursor leaves the application window while dragging."
 - enable_cruising: false
   $name: "Continuous Cruising (Hands-Free)"
-  $description: "Let go of the anchor button to let the page keep scrolling on its own. Disengages on any click or keypress."
+  $description: "Let go of the anchor button to let the page keep scrolling on its own. Disengages on any click or keypress. (Note: Requires the 'Ctrl + Right-Click' trigger mode)."
 - cruise_anchor: "Ctrl"
   $name: "Cruising Anchor Key"
   $description: "Only used when Continuous Cruising is enabled. Choose which button you keep holding while releasing the other to start gliding."
@@ -117,7 +126,7 @@ Hold **`Ctrl` + Right-Click** and drag your mouse to scroll naturally and effort
   $description: "Distance in pixels required to trigger one scroll step (minimum 10 px). Lower numbers scroll faster; higher numbers make it gentler and more controlled."
 - deadzone: 5
   $name: "Drag Deadzone (Pixels)"
-  $description: "How many pixels your mouse must move before scrolling starts. Tapping Ctrl + Right-Click in place without dragging passes through as a normal shortcut."
+  $description: "How many pixels your mouse must move before scrolling starts. Tapping your chosen trigger in place without dragging passes through as a normal click or shortcut."
 - velocity_mode: "Standard"
   $name: "Dynamic Velocity Mode"
   $description: "Scales scroll speed with mouse movement—flick quickly to fly through pages, or drag slowly for exact line-by-line control."
@@ -163,6 +172,7 @@ struct ScrollTypes {
     enum class CruiseAnchor : int { Ctrl = 0, Rmb };
 
     struct SettingsSnapshot {
+        int trigger_mode = 0;
         bool touch_style = true;
         bool enable_horizontal = true;
         bool allow_out_of_bounds = false;
@@ -212,6 +222,7 @@ struct ScopedCriticalSection {
 
 // Manage thread-safe atomic storage and loading of user settings
 struct SettingsManager {
+    inline static std::atomic<int> trigger_mode{0};
     inline static std::atomic<bool> touch_style{true};
     inline static std::atomic<bool> enable_horizontal{true};
     inline static std::atomic<bool> allow_out_of_bounds{false};
@@ -224,6 +235,15 @@ struct SettingsManager {
 
     // Load settings from Windhawk storage using atomic relaxed stores
     static void Load() {
+        // Parse trigger mode
+        int parsedTrigger = 0;
+        PCWSTR triggerStr = Wh_GetStringSetting(L"trigger_mode");
+        if (wcscmp(triggerStr, L"RMBOnly") == 0) {
+            parsedTrigger = 1;
+        }
+        Wh_FreeStringSetting(triggerStr);
+        trigger_mode.store(parsedTrigger, std::memory_order_relaxed);
+
         touch_style.store(Wh_GetIntSetting(L"touch_style") != 0,
                           std::memory_order_relaxed);
         enable_horizontal.store(Wh_GetIntSetting(L"enable_horizontal") != 0,
@@ -279,6 +299,7 @@ struct SettingsManager {
     // Capture a consistent lock-free snapshot of settings for input processing
     static ScrollTypes::SettingsSnapshot Snapshot() {
         ScrollTypes::SettingsSnapshot snap;
+        snap.trigger_mode = trigger_mode.load(std::memory_order_relaxed);
         snap.touch_style = touch_style.load(std::memory_order_relaxed);
         snap.enable_horizontal =
             enable_horizontal.load(std::memory_order_relaxed);
@@ -286,6 +307,10 @@ struct SettingsManager {
             allow_out_of_bounds.load(std::memory_order_relaxed);
         snap.enable_cruising = enable_cruising.load(std::memory_order_relaxed);
         snap.cruise_anchor = cruise_anchor.load(std::memory_order_relaxed);
+        // Force cruising off if RMB-Only mode is active
+        if (snap.trigger_mode == 1) {
+            snap.enable_cruising = false;
+        }
         snap.pixels_per_notch = static_cast<double>(
             pixels_per_notch.load(std::memory_order_relaxed));
         snap.deadzone = deadzone.load(std::memory_order_relaxed);
@@ -1286,7 +1311,8 @@ struct InputEngine {
             extra != ScrollTypes::kMaskExtraInfo) {
             if (pMsg->wParam == VK_CONTROL || pMsg->wParam == VK_LCONTROL ||
                 pMsg->wParam == VK_RCONTROL) {
-                if (!ScrollDispatcher::IsCtrlPhysicallyDown()) {
+                if (!ScrollDispatcher::IsCtrlPhysicallyDown() &&
+                    cfg.trigger_mode == 0) {
                     ScrollTypes::ScrollState cur =
                         RuntimeState::state.load(std::memory_order_acquire);
                     const bool rmbDown =
@@ -1396,9 +1422,13 @@ struct InputEngine {
             }
         }
 
-        // Begin a Pending drag-to-scroll session on Ctrl + Right-Button Down
+        bool isCtrlDown = (pMsg->wParam & MK_CONTROL) != 0;
+        bool triggerActivated =
+            (cfg.trigger_mode == 1) ? !isCtrlDown : isCtrlDown;
+
+        // Begin a Pending drag-to-scroll session based on the chosen trigger
         if ((m == WM_RBUTTONDOWN || m == WM_RBUTTONDBLCLK) &&
-            (pMsg->wParam & MK_CONTROL)) {
+            triggerActivated) {
             POINT startPt = {};
             GetCursorPos(&startPt);
 
