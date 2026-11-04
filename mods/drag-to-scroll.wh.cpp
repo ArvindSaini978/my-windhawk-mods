@@ -1262,6 +1262,13 @@ struct InputEngine {
             ScrollTypes::ScrollState st =
                 RuntimeState::state.load(std::memory_order_acquire);
             if (st != ScrollTypes::ScrollState::Idle) {
+                // Keep the normal arrow while in the deadzone (Pending) for
+                // RMB-Only mode
+                if (SettingsManager::trigger_mode.load(
+                        std::memory_order_relaxed) == 1 &&
+                    st == ScrollTypes::ScrollState::Pending) {
+                    return false;
+                }
                 CursorManager::ApplyScrollCursor(
                     st,
                     RuntimeState::activeAxis.load(std::memory_order_relaxed));
@@ -1473,9 +1480,13 @@ struct InputEngine {
 
             PerformPostLockCleanup(hPrevCap, hPrevDisc, prevIsDisc);
             SetCapture(pMsg->hwnd);
-            CursorManager::ApplyScrollCursor(
-                ScrollTypes::ScrollState::Pending,
-                ScrollTypes::DragAxis::VerticalOnly);
+
+            // Only apply the pending cursor immediately if using Ctrl mode
+            if (cfg.trigger_mode == 0) {
+                CursorManager::ApplyScrollCursor(
+                    ScrollTypes::ScrollState::Pending,
+                    ScrollTypes::DragAxis::VerticalOnly);
+            }
 
             LONG_PTR exStyle = GetWindowLongPtrW(hRootWnd, GWL_EXSTYLE);
             if (!(exStyle & WS_EX_NOACTIVATE) &&
@@ -1893,6 +1904,12 @@ struct HookCallbacks {
         ScrollTypes::ScrollState st =
             RuntimeState::state.load(std::memory_order_acquire);
         if (st != ScrollTypes::ScrollState::Idle) {
+            // Do not override the cursor in the deadzone for RMB-Only mode
+            if (SettingsManager::trigger_mode.load(std::memory_order_relaxed) ==
+                    1 &&
+                st == ScrollTypes::ScrollState::Pending) {
+                return OriginalApis::SetCursor(hCursor);
+            }
             HCURSOR hTarget = CursorManager::GetCursorForState(
                 st, RuntimeState::activeAxis.load(std::memory_order_relaxed));
             if (hTarget) {
