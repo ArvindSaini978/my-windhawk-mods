@@ -19,6 +19,16 @@ My personal collection of Windhawk mods.
 
 ## How to Install Mods
 
+Most mods are available directly through Windhawk. For mods not yet published, you can install them manually.
+
+### Installing Published Mods
+1. Open **Windhawk**.
+2. Go to the **Explore** tab.
+3. Search for the name of the mod you want to install.
+4. Click on **Details** and then click **Install**.
+
+### Installing Unpublished Mods (Manual Install)
+If the mod is not available in the Explore tab, follow these steps:
 1. In **Windhawk**, go to **Settings** and turn on **Developer mode**.
 2. Return to the home screen and click the floating **"Create a New Mod"** button.
 3. Copy the code of the mod you want to install, replace the editor's content with it, and click **Compile Mod** (or press `Ctrl + B`).
