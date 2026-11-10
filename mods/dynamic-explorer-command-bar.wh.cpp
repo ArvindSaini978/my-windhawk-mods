@@ -37,8 +37,8 @@ Designed for Windows 11 with the WinAppSDK (WinUI 3) File Explorer.
 * **Batch Spawning (`%sel_each%`)** — Automatically launch an application instance for each highlighted item with built-in safety throttling.
 * **Secondary Command Bar Placement** — Dock custom actions on the right side of the command bar (next to the Details/Preview pane toggles) for a clean dual-toolbar layout.
 * **Theme-Aware & Executable Icons** — Support fluent Segoe glyphs (browse codes on [Segoe Fluent Icons](https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-fluent-icons-font)), short application names runnable via Run or Terminal (`cmd.exe`, `notepad.exe`, `winrar.exe`), local file paths (`.exe` / `.dll` / `.ico`), Store apps (`shell:AppsFolder\...`), and dual Light/Dark icons via `LightPath | DarkPath` syntax.
-* **Hide Built-in Explorer Buttons** — Declutter your toolbar by selectively hiding native Windows 11 commands (Cut, Copy, Paste, Share, Sort, View, 'See more'), contextual tools (Rotate, Extract all), and the Details pane toggle.
-* **Rename Native Buttons** — Save horizontal space by customizing the text labels of default system actions (e.g., shorten "Empty Recycle Bin" to "Empty bin", or "Details pane" to "Info").
+* **Hide Built-in Explorer Buttons** — Declutter your toolbar by selectively hiding native Windows 11 commands (Cut, Copy, Paste, Share, Sort, View, 'See more'), contextual tools (Rotate, Extract all), the Details pane toggle, and Recycle Bin actions (Restore selected, Restore all, Empty Recycle Bin).
+* **Rename Native Buttons** — Save horizontal space by customizing the text labels of default system actions (e.g., shorten "Empty Recycle Bin" to "Empty bin", "Details pane" to "Info", or "Rotate right" to "Right").
 * **Open on Hover** — Open dropdown menus smoothly on cursor hover.
 
 ---
@@ -67,18 +67,18 @@ The mod supports rich parameter expansions that dynamically resolve the state of
 | :--- | :--- | :--- |
 | `%base%` / `%basename%` | Selected item base names without extension | `Archive` |
 | `%file_name%` | First item base name (for extract/output folders) | `Archive` |
-| `%path%` / `%dir%` | Full path of the currently active folder | `C:\Projects\App` |
-| `%sel%` / `%f` | All selected items as space-separated quoted paths | `"C:\a.txt" "C:\b.png"` |
-| `%1` / `%1%` | Full path of the first selected item | `"C:\Projects\App\Notes.txt"` |
+| `%path%` / `%dir%` / `%d%` | Full physical path of the currently active folder | `C:\Projects\App` |
+| `%sel%` / `%f%` | All selected items as space-separated quoted paths | `"C:\a.txt" "C:\b.png"` |
+| `%1%` / `%1` | Full path of the first selected item | `"C:\Projects\App\Notes.txt"` |
 | `%sel_each%` | Executes a distinct process instance per selected item (capped at 20) | `"C:\Item.txt"` |
-| `%files` | Space-separated quoted paths of selected regular files only | `"C:\doc.txt"` |
-| `%folders` | Space-separated quoted paths of selected directories only | `"C:\FolderA"` |
-| `%n` / `%name%` | Selected file names only (without directory path) | `"Notes.txt"` |
-| `%ext` | File extension of the first selected item | `.png` |
-| `%c` / `%count` | Total number of selected items | `3` |
-| `%d_smart` | Selected directory if one is chosen, otherwise falls back to active folder | `C:\Projects\App\Sub` |
-| `%d_name` | Name of the active folder only | `App` |
-| `%p` / `%parent` | Parent folder path of the active tab | `C:\Projects` |
+| `%files%` | Space-separated quoted paths of selected regular files only | `"C:\doc.txt"` |
+| `%folders%` | Space-separated quoted paths of selected directories only | `"C:\FolderA"` |
+| `%name%` / `%n%` | Selected file names only (without directory path) | `"Notes.txt"` |
+| `%ext%` | File extension of the first selected item | `.png` |
+| `%count%` / `%c%` | Total number of selected items | `3` |
+| `%d_smart%` | Selected directory if one is chosen, otherwise falls back to active folder | `C:\Projects\App\Sub` |
+| `%d_name%` | Display name of the active folder or virtual location | `App` or `This PC` |
+| `%parent%` / `%p%` | Parent folder path of the active tab | `C:\Projects` |
 | `%%` | Literal percent sign escape | `%` |
 
 Wrap placeholders in double quotes when necessary (e.g., `-d "%path%"` or `code.exe "%sel%"`).
@@ -102,7 +102,7 @@ The **File extension filter** (`matchExtensions`) field lets you display toolbar
 
 * **`hide` / `hidden`** — Absolute override. Keeps the button permanently hidden until removed.
 * **Leave blank or `*`** — Always show the button regardless of selection.
-* **`none` / `empty` / `nothing`** — Show **only** when nothing is selected (0 items highlighted). Hides as soon as any item is clicked.
+* **`none` / `empty` / `nothing` / `unselected`** — Show **only** when nothing is selected (0 items highlighted). Hides as soon as any item is clicked.
 * **`selected` / `any`** — Show whenever at least one item of any kind is highlighted.
 * **`files` / `file`** — Show if regular files are selected (regardless of count).
 * **`folders` / `folder` / `dir`** — Show if folders/directories are selected (regardless of count).
@@ -148,21 +148,38 @@ To place buttons inside a dropdown menu:
 
 ---
 
-### Comparison with Existing Mods
+## Decluttering & Customizing Native Explorer Buttons
+
+You can manage native Windows 11 toolbar buttons directly from the Windhawk Settings tab:
+
+### 1. Hiding Built-in Buttons (`hideDefaultButtons`)
+Toggle any built-in action to hide it completely from File Explorer:
+* **Core Actions:** `New`, `Cut`, `Copy`, `Paste`, `Rename`, `Share`, `Delete`, `Sort`, `View`, and `See more` (`...` menu).
+* **Separators:** Selectively remove the vertical separator line after `New`, after `Delete`, or after `View`.
+* **Contextual Tools:** `Set as background`, `Rotate left`, `Rotate right`, and `Extract all`.
+* **Panes:** `Details pane toggle`.
+* **Recycle Bin:** `Restore selected items`, `Restore all items`, and `Empty Recycle Bin`.
+
+### 2. Renaming Native Labels (`systemButtonLabels`)
+Default Windows command bar buttons with text labels can be overridden to save horizontal toolbar space:
+* Set a custom short string (e.g., `"Left"` for Rotate Left, `"Empty bin"` for Empty Recycle Bin, or `"Info"` for Details pane).
+* Leave the setting blank (`""`) to keep the default localized Windows text.
+
+---
+
+## Comparison with Existing Mods
 
 * **vs. `explorer-command-bar` (DanRotaru)**: 
-  The original mod provides static command buttons and hides built-in buttons. **Dynamic Explorer Command Bar** extends this with real-time selection-based extension filtering, per-item execution (`%sel_each%`), secondary toolbar placement, dual Light/Dark icons, and an expanded token engine (`%files`, `%folders`, `%n`, `%ext`, `%c`, `%d_name`, `%p`).
+  The original mod provides static command buttons and hides built-in buttons. **Dynamic Explorer Command Bar** extends this with real-time selection-based extension filtering, live UI label tokens, custom native button labels, per-item execution (`%sel_each%`), secondary toolbar placement, dual Light/Dark icons, and an expanded token engine (`%files%`, `%folders%`, `%n%`, `%ext%`, `%c%`, `%d_name%`, `%p%`).
 * **vs. `explorer-custom-shortcuts` (ArvindSaini978)**:
   While *Explorer Custom Shortcuts* provides background keyboard hotkeys, this mod brings dynamic parameter evaluation directly to the visual WinUI command bar.
 
 ---
 
-### Author & Attribution
+## Author & Attribution
 
 * **Created and maintained by ArvindSaini978 ([GitHub](https://github.com/ArvindSaini978)).**
-* Based on and extended from **Explorer Command Bar** by DanRotaru (MIT License), which provides the foundational XAML visual tree hooks and command bar injection architecture.
-* Parameter token expansions and batch-launch concepts adapted from **Explorer Custom Shortcuts** by ArvindSaini978.
-* Window thread dispatch and refresh helper logic adapted from **Explorer Folder Bookmarks Bar** by Maxim Fomin.
+* Extended from *Explorer Command Bar* by DanRotaru (MIT), with token expansion adapted from *Explorer Custom Shortcuts* (ArvindSaini978) and thread dispatch from *Explorer Folder Bookmarks Bar* (Maxim Fomin).
 */
 // ==/WindhawkModReadme==
 
@@ -194,7 +211,7 @@ To place buttons inside a dropdown menu:
     - parameters: ""
       $name: Parameters
       $description: >-
-        Command line arguments. Common tokens: %path% (folder), %sel% (selected items), %sel_each% (batch launch), %files, %folders, %name, %base, %d_name, etc. Use %% for literal %. 
+        Command line arguments. Common tokens: %path% / %dir% / %d% (folder), %sel% (selected items), %sel_each% (batch launch), %files%, %folders%, %name%, %base%, %d_name%, %parent%, etc. Use %% for literal %. 
         All work with or without trailing %. See Details Tab for full list. 
     - matchExtensions: ""
       $name: "File extension filter"
@@ -217,7 +234,7 @@ To place buttons inside a dropdown menu:
     - labelText: ""
       $name: Custom Label Text
       $description: >-
-        Text displayed next to the icon. Supports live tokens: %base% / %basename% / %file_name%, %name% / %n% / %1%, %ext%, %count% / %c%, %d_name%, %dir% / %path%. Use %% for literal %. All work with or without trailing %. If empty, Item ID is used.
+        Text displayed next to the icon. Supports live tokens: %base% / %basename% / %file_name%, %name% / %n% / %1%, %ext%, %count% / %c%, %d_name%, %dir% / %path% / %d%. Use %% for literal %. All work with or without trailing %. If empty, Item ID is used.
     - separatorBefore: false
       $name: Vertical separator before
       $description: Show a vertical separator line before this button.
@@ -227,6 +244,7 @@ To place buttons inside a dropdown menu:
   - - type: button
     - id: "open_with"
     - parent: ""
+    - order: ""
     - command: internal:OpenWith
     - parameters: ""
     - matchExtensions: "single_file"
@@ -239,6 +257,7 @@ To place buttons inside a dropdown menu:
   - - type: button
     - id: "open_notepad"
     - parent: ""
+    - order: ""
     - command: notepad.exe
     - parameters: "%sel_each%"
     - matchExtensions: ""
@@ -251,6 +270,7 @@ To place buttons inside a dropdown menu:
   - - type: button
     - id: "open_terminal"
     - parent: ""
+    - order: ""
     - command: wt.exe
     - parameters: -d "%path%"
     - matchExtensions: ""
@@ -263,6 +283,7 @@ To place buttons inside a dropdown menu:
   - - type: menu
     - id: "custom_menu"
     - parent: ""
+    - order: ""
     - command: ""
     - parameters: ""
     - matchExtensions: ""
@@ -275,6 +296,7 @@ To place buttons inside a dropdown menu:
   - - type: button
     - id: "cmd_here"
     - parent: "custom_menu"
+    - order: ""
     - command: cmd.exe
     - parameters: /k cd /d "%path%"
     - matchExtensions: ""
@@ -287,6 +309,7 @@ To place buttons inside a dropdown menu:
   - - type: button
     - id: "open_calc"
     - parent: "custom_menu"
+    - order: ""
     - command: calc.exe
     - parameters: ""
     - matchExtensions: ""
@@ -345,6 +368,15 @@ To place buttons inside a dropdown menu:
   - extractAll: false
     $name: Extract all
     $description: Shown when a zip or other archive file is selected.
+  - restoreSelected: false
+    $name: Recycle Bin - Restore selected items
+    $description: Shown inside the Recycle Bin when items are selected.
+  - restoreAll: false
+    $name: Recycle Bin - Restore all items
+    $description: Shown inside the Recycle Bin when no items are selected.
+  - emptyRecycleBin: false
+    $name: Recycle Bin - Empty Recycle Bin
+    $description: Shown inside the Recycle Bin.
   - details: false
     $name: Details pane toggle
   $name: Hide default toolbar buttons
@@ -359,21 +391,21 @@ To place buttons inside a dropdown menu:
   - extractAll: ""
     $name: Extract all label
     $description: Shorten the Extract all label. Leave blank to keep default.
-  - rotateLeft: "Left"
+  - rotateLeft: ""
     $name: Rotate left label override
     $description: Shorten the Rotate Left label (e.g., 'Left'). Leave blank to keep default.
-  - rotateRight: "Right"
+  - rotateRight: ""
     $name: Rotate right label override
     $description: Shorten the Rotate Right label (e.g., 'Right'). Leave blank to keep default.
-  - restoreSelected: "Restore selected"
+  - restoreSelected: ""
     $name: Recycle Bin - Restore selected items
-    $description: Shorten the Recycle Bin restore selected items label. Leave blank to keep default.
-  - restoreAll: "Restore all"
+    $description: Shorten the Recycle Bin restore selected items label (e.g., 'Restore selected'). Leave blank to keep default.
+  - restoreAll: ""
     $name: Recycle Bin - Restore all items
-    $description: Shorten the Recycle Bin restore all items label. Leave blank to keep default.
-  - emptyRecycleBin: "Empty bin"
+    $description: Shorten the Recycle Bin restore all items label (e.g., 'Restore all'). Leave blank to keep default.
+  - emptyRecycleBin: ""
     $name: Recycle Bin - Empty Recycle Bin
-    $description: Shorten the Empty Recycle Bin button label. Leave blank to keep default.
+    $description: Shorten the Empty Recycle Bin button label (e.g., 'Empty bin'). Leave blank to keep default.
   - details: ""
     $name: Details pane button label
     $description: Shorten the Details pane button label (e.g., 'Details' or 'Info'). Leave blank to keep default.
@@ -446,13 +478,6 @@ To place buttons inside a dropdown menu:
 #ifndef IO_REPARSE_TAG_APPEXECLINK
 #define IO_REPARSE_TAG_APPEXECLINK (0x8000001BL)
 #endif
-
-// Standard WinRT namespace aliases
-namespace wf = winrt::Windows::Foundation;
-namespace wfc = winrt::Windows::Foundation::Collections;
-namespace mux = winrt::Microsoft::UI::Xaml;
-namespace muxc = winrt::Microsoft::UI::Xaml::Controls;
-namespace muxm = winrt::Microsoft::UI::Xaml::Media;
 
 // ============================================================================
 // Lifecycle Synchronization & Concurrency Guards
@@ -546,9 +571,10 @@ static constexpr DefaultButtonDef kDefaultButtons[] = {
     {L"rotateRight", L"windows.rotate90.svg", nullptr},                 // 11
     {L"extractAll", L"windows.compressedfile.extract.svg", nullptr},    // 12
     {L"details", L"windows.details.svg", L"DetailsPaneToggle"},         // 13
-    {L"restoreSelected", nullptr, L"RestoreSelected"},                  // 14
-    {L"restoreAll", nullptr, L"RestoreAll"},                            // 15
-    {L"emptyRecycleBin", nullptr, L"EmptyRecycleBin"},                  // 16
+    {L"restoreSelected", L"windows.undelete.svg", L"RestoreSelected"},  // 14
+    {L"restoreAll", L"windows.restoreall.svg", L"RestoreAll"},          // 15
+    {L"emptyRecycleBin", L"windows.emptyrecyclebin.svg",
+     L"EmptyRecycleBin"},  // 16
 };
 
 // Constants indexing specific built-in toolbar buttons and operational safety
@@ -603,7 +629,6 @@ struct ModSettings {
     bool hideDefaultButtons[kDefaultButtonCount] = {};
     bool hideSeparatorAfterButton[kDefaultButtonCount] = {};
     bool hideMoreButton = false;
-    bool hideDetailsButton = false;
     std::wstring customLabels[kDefaultButtonCount];
 };
 
@@ -616,8 +641,9 @@ static ModSettings g_settings;
 // Per-CommandBar state tracking timers, event tokens, cached shell views, and
 // label positions
 struct CommandBarEntry {
-    winrt::weak_ref<muxc::CommandBar> commandBar;
-    mux::DispatcherTimer selectionTimer{nullptr};
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::CommandBar>
+        commandBar;
+    winrt::Microsoft::UI::Xaml::DispatcherTimer selectionTimer{nullptr};
     winrt::event_token selectionTickToken{};
     winrt::event_token vectorChangedToken{};
     bool hasVectorChangedToken = false;
@@ -627,8 +653,10 @@ struct CommandBarEntry {
     int lastSelectionCount = -1;
     int lastFocusedItem = -1;
     bool hasModifiedDefaultLabelPosition = false;
-    muxc::CommandBarDefaultLabelPosition originalDefaultLabelPosition{
-        muxc::CommandBarDefaultLabelPosition::Bottom};
+    winrt::Microsoft::UI::Xaml::Controls::CommandBarDefaultLabelPosition
+        originalDefaultLabelPosition{
+            winrt::Microsoft::UI::Xaml::Controls::
+                CommandBarDefaultLabelPosition::Bottom};
 };
 
 // Thread-local storage for active CommandBars, scan status, coalesced updates,
@@ -641,7 +669,7 @@ static thread_local int g_modifyingCommandsDepth = 0;
 // Type-erased wrapper holding a WinRT auto-revoker tied to a weak XAML object
 // source
 struct TrackedRevoker {
-    winrt::weak_ref<wf::IInspectable> source;
+    winrt::weak_ref<winrt::Windows::Foundation::IInspectable> source;
     std::function<void()> revoke;
 };
 
@@ -662,8 +690,9 @@ static void TrackRevoker(T const& source, Revoker&& revoker) {
 
     auto held =
         std::make_shared<std::decay_t<Revoker>>(std::forward<Revoker>(revoker));
-    g_revokers.push_back({winrt::weak_ref<wf::IInspectable>{source},
-                          [held]() { held->revoke(); }});
+    g_revokers.push_back(
+        {winrt::weak_ref<winrt::Windows::Foundation::IInspectable>{source},
+         [held]() { held->revoke(); }});
 }
 
 // Immediately revoke all registered WinRT event handlers on the current UI
@@ -792,6 +821,27 @@ static std::wstring ExtractBaseName(std::wstring_view itemPath) {
     wcsncpy_s(buffer, fileName, _TRUNCATE);
     PathRemoveExtensionW(buffer);
     return buffer;
+}
+
+// Parse a non-negative integer strictly from a string without accepting
+// non-digits
+static bool TryParseNonNegativeInt(std::wstring_view str, int* outVal) {
+    if (str.empty() || !outVal) {
+        return false;
+    }
+    int value = 0;
+    for (WCHAR c : str) {
+        if (c < L'0' || c > L'9') {
+            return false;
+        }
+        int digit = c - L'0';
+        if (value > (INT_MAX - digit) / 10) {
+            return false;
+        }
+        value = value * 10 + digit;
+    }
+    *outVal = value;
+    return true;
 }
 
 // Wrap a command-line argument in double quotes while escaping trailing
@@ -940,7 +990,8 @@ static bool IsExplorerFrame(HWND window) {
 
 // Resolve the hosting CabinetWClass HWND for a WinUI 3 XAML element via
 // ContentIslandEnvironment
-static HWND GetExplorerWindowForElement(mux::FrameworkElement const& element) {
+static HWND GetExplorerWindowForElement(
+    winrt::Microsoft::UI::Xaml::FrameworkElement const& element) {
     try {
         if (auto root = element.XamlRoot()) {
             if (auto environment = root.ContentIslandEnvironment()) {
@@ -1119,17 +1170,26 @@ static void PopulateFolderInfoFast(IShellView* pView, ExplorerContext& result) {
         SFGAOF attrs = 0;
         if (SUCCEEDED(folderItem->GetAttributes(SFGAO_FILESYSTEM, &attrs)) &&
             (attrs & SFGAO_FILESYSTEM)) {
-            PWSTR parsePath = nullptr;
-            if (SUCCEEDED(folderItem->GetDisplayName(
-                    SIGDN_DESKTOPABSOLUTEPARSING, &parsePath)) &&
-                parsePath) {
-                // Reject shell GUID parsing paths ("::{...}") disguised as
-                // filesystem objects
-                if (!(parsePath[0] == L':' && parsePath[1] == L':')) {
-                    result.folderPath = parsePath;
+            PWSTR fsPath = nullptr;
+            if (SUCCEEDED(
+                    folderItem->GetDisplayName(SIGDN_FILESYSPATH, &fsPath)) &&
+                fsPath) {
+                if (!(fsPath[0] == L':' && fsPath[1] == L':')) {
+                    result.folderPath = fsPath;
                     result.isFilesystemFolder = true;
                 }
-                CoTaskMemFree(parsePath);
+                CoTaskMemFree(fsPath);
+            } else {
+                PWSTR parsePath = nullptr;
+                if (SUCCEEDED(folderItem->GetDisplayName(
+                        SIGDN_DESKTOPABSOLUTEPARSING, &parsePath)) &&
+                    parsePath) {
+                    if (!(parsePath[0] == L':' && parsePath[1] == L':')) {
+                        result.folderPath = parsePath;
+                        result.isFilesystemFolder = true;
+                    }
+                    CoTaskMemFree(parsePath);
+                }
             }
         }
     }
@@ -1158,6 +1218,8 @@ static ExplorerContext GetLightweightContextFromView(IShellView* pView,
     result.selectionCount =
         (selectionCount > 0) ? static_cast<size_t>(selectionCount) : 0;
 
+    PopulateFolderInfoFast(pView, result);
+
     if (result.selectionCount > 0) {
         winrt::com_ptr<IShellItemArray> items;
         if (SUCCEEDED(pView->GetItemObject(SVGIO_SELECTION,
@@ -1177,22 +1239,42 @@ static ExplorerContext GetLightweightContextFromView(IShellView* pView,
                 if (SUCCEEDED(
                         firstItem->GetAttributes(SFGAO_FILESYSTEM, &attrs)) &&
                     (attrs & SFGAO_FILESYSTEM)) {
-                    PWSTR relParse = nullptr;
-                    if (SUCCEEDED(firstItem->GetDisplayName(
-                            SIGDN_PARENTRELATIVEPARSING, &relParse)) &&
-                        relParse) {
-                        if (!(relParse[0] == L':' && relParse[1] == L':')) {
-                            result.selectedPath = relParse;
-                            result.allSelectedPaths.push_back(relParse);
+                    PWSTR fsPath = nullptr;
+                    if (SUCCEEDED(firstItem->GetDisplayName(SIGDN_FILESYSPATH,
+                                                            &fsPath)) &&
+                        fsPath) {
+                        if (!(fsPath[0] == L':' && fsPath[1] == L':')) {
+                            result.selectedPath = fsPath;
+                            result.allSelectedPaths.push_back(fsPath);
                         }
-                        CoTaskMemFree(relParse);
+                        CoTaskMemFree(fsPath);
+                    } else {
+                        PWSTR relParse = nullptr;
+                        if (SUCCEEDED(firstItem->GetDisplayName(
+                                SIGDN_PARENTRELATIVEPARSING, &relParse)) &&
+                            relParse) {
+                            if (!(relParse[0] == L':' && relParse[1] == L':')) {
+                                std::wstring combined = result.folderPath;
+                                if (!combined.empty()) {
+                                    if (combined.back() != L'\\') {
+                                        combined += L'\\';
+                                    }
+                                    combined += relParse;
+                                } else {
+                                    combined = relParse;
+                                }
+                                result.selectedPath = combined;
+                                result.allSelectedPaths.push_back(
+                                    std::move(combined));
+                            }
+                            CoTaskMemFree(relParse);
+                        }
                     }
                 }
             }
         }
     }
 
-    PopulateFolderInfoFast(pView, result);
     return result;
 }
 
@@ -1763,6 +1845,8 @@ static std::wstring ResolveLabelTokens(std::wstring label,
     ReplacePlaceholder(label, L"%path", safePath);
     ReplacePlaceholder(label, L"%dir%", safePath);
     ReplacePlaceholder(label, L"%dir", safePath);
+    ReplacePlaceholder(label, L"%d%", safePath);
+    ReplacePlaceholder(label, L"%d", safePath);
 
     if (hasEscapedPercent) {
         ReplacePlaceholder(label, L"\x01", L"%");
@@ -2197,10 +2281,46 @@ static void LaunchItemForWindow(HWND hExplorerWnd,
     ExecuteProcess(command, parameters, workingDir);
 }
 
+// Synthesize an Alt+P or Alt+Shift+P shortcut cleanly while neutralizing held
+// Ctrl/Shift modifiers
+static void SendExplorerPaneToggleShortcut(bool withShift) {
+    std::vector<INPUT> inputs;
+    inputs.reserve(10);
+
+    auto pushKey = [&](WORD vk, DWORD flags) {
+        INPUT in{};
+        in.type = INPUT_KEYBOARD;
+        in.ki.wVk = vk;
+        in.ki.dwFlags = flags;
+        inputs.push_back(in);
+    };
+
+    if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+        pushKey(VK_CONTROL, KEYEVENTF_KEYUP);
+    }
+    if (!withShift && (GetAsyncKeyState(VK_SHIFT) & 0x8000)) {
+        pushKey(VK_SHIFT, KEYEVENTF_KEYUP);
+    }
+
+    pushKey(VK_MENU, 0);
+    if (withShift) {
+        pushKey(VK_SHIFT, 0);
+    }
+    pushKey('P', 0);
+    pushKey('P', KEYEVENTF_KEYUP);
+    if (withShift) {
+        pushKey(VK_SHIFT, KEYEVENTF_KEYUP);
+    }
+    pushKey(VK_MENU, KEYEVENTF_KEYUP);
+
+    SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
+}
+
 // Handle toolbar button or menu item click and dispatch shell/process execution
 // safely
-static void OnActionInvoked(mux::FrameworkElement const& elementForWindow,
-                            ActionItem const& item) {
+static void OnActionInvoked(
+    winrt::Microsoft::UI::Xaml::FrameworkElement const& elementForWindow,
+    ActionItem const& item) {
     UiCallScope scope;
     if (item.command.empty() || g_unloading) {
         return;
@@ -2210,39 +2330,12 @@ static void OnActionInvoked(mux::FrameworkElement const& elementForWindow,
     std::wstring_view cmd = item.command;
 
     if (IsCommandMatch(cmd, L"TogglePreview")) {
-        INPUT inputs[4] = {};
-        inputs[0].type = INPUT_KEYBOARD;
-        inputs[0].ki.wVk = VK_MENU;
-        inputs[1].type = INPUT_KEYBOARD;
-        inputs[1].ki.wVk = 'P';
-        inputs[2].type = INPUT_KEYBOARD;
-        inputs[2].ki.wVk = 'P';
-        inputs[2].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[3].type = INPUT_KEYBOARD;
-        inputs[3].ki.wVk = VK_MENU;
-        inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
-        SendInput(4, inputs, sizeof(INPUT));
+        SendExplorerPaneToggleShortcut(false);
         return;
     }
 
     if (IsCommandMatch(cmd, L"ToggleDetails")) {
-        INPUT inputs[6] = {};
-        inputs[0].type = INPUT_KEYBOARD;
-        inputs[0].ki.wVk = VK_MENU;
-        inputs[1].type = INPUT_KEYBOARD;
-        inputs[1].ki.wVk = VK_SHIFT;
-        inputs[2].type = INPUT_KEYBOARD;
-        inputs[2].ki.wVk = 'P';
-        inputs[3].type = INPUT_KEYBOARD;
-        inputs[3].ki.wVk = 'P';
-        inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[4].type = INPUT_KEYBOARD;
-        inputs[4].ki.wVk = VK_SHIFT;
-        inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[5].type = INPUT_KEYBOARD;
-        inputs[5].ki.wVk = VK_MENU;
-        inputs[5].ki.dwFlags = KEYEVENTF_KEYUP;
-        SendInput(6, inputs, sizeof(INPUT));
+        SendExplorerPaneToggleShortcut(true);
         return;
     }
 
@@ -2256,9 +2349,15 @@ static void OnActionInvoked(mux::FrameworkElement const& elementForWindow,
 
     if (IsCommandMatch(cmd, L"OpenWith")) {
         ExplorerContext context = GetFullExplorerContext(hWnd);
-        if (!context.selectedPath.empty() &&
-            context.selectedFoldersOnly.empty()) {
-            std::wstring targetPath = context.selectedPath;
+        std::wstring targetPath;
+        if (!context.selectedFilesOnly.empty()) {
+            targetPath = context.selectedFilesOnly[0];
+        } else if (!context.hasClassifiedSelection &&
+                   !context.selectedPath.empty()) {
+            targetPath = context.selectedPath;
+        }
+
+        if (!targetPath.empty()) {
             RunShellWorkOnWorkerThread([hWnd, targetPath]() {
                 if (PathIsDirectoryW(targetPath.c_str()) == FALSE) {
                     OPENASINFO oai = {};
@@ -2501,11 +2600,13 @@ static bool DecodeIcon(HICON hIcon, DecodedIcon* decoded) {
 
 // Materialize a XAML WriteableBitmap ImageSource on the UI thread from cached
 // BGRA pixels
-static muxm::ImageSource CreateImageSource(DecodedIcon const& decoded) try {
+static winrt::Microsoft::UI::Xaml::Media::ImageSource CreateImageSource(
+    DecodedIcon const& decoded) try {
     if (decoded.empty()) {
         return nullptr;
     }
-    muxm::Imaging::WriteableBitmap bitmap(decoded.width, decoded.height);
+    winrt::Microsoft::UI::Xaml::Media::Imaging::WriteableBitmap bitmap(
+        decoded.width, decoded.height);
     memcpy(bitmap.PixelBuffer().data(), decoded.pixels.data(),
            decoded.pixels.size());
     bitmap.Invalidate();
@@ -2676,9 +2777,11 @@ static std::shared_ptr<DecodedIcon> GetIcon(std::wstring const& iconSetting,
 }
 
 // Construct a Segoe Fluent Icons FontIcon element for a Unicode glyph string
-static muxc::IconElement CreateGlyphIcon(PCWSTR glyph) {
-    muxc::FontIcon fontIcon;
-    fontIcon.FontFamily(muxm::FontFamily(L"Segoe Fluent Icons"));
+static winrt::Microsoft::UI::Xaml::Controls::IconElement CreateGlyphIcon(
+    PCWSTR glyph) {
+    winrt::Microsoft::UI::Xaml::Controls::FontIcon fontIcon;
+    fontIcon.FontFamily(
+        winrt::Microsoft::UI::Xaml::Media::FontFamily(L"Segoe Fluent Icons"));
     fontIcon.Glyph(glyph);
     return fontIcon;
 }
@@ -2686,11 +2789,12 @@ static muxc::IconElement CreateGlyphIcon(PCWSTR glyph) {
 // Determine whether dark mode is active using the XAML ActualTheme or
 // Personalize registry fallback
 static bool IsDarkThemeActive(
-    mux::ElementTheme actualTheme = mux::ElementTheme::Default) {
-    if (actualTheme == mux::ElementTheme::Dark) {
+    winrt::Microsoft::UI::Xaml::ElementTheme actualTheme =
+        winrt::Microsoft::UI::Xaml::ElementTheme::Default) {
+    if (actualTheme == winrt::Microsoft::UI::Xaml::ElementTheme::Dark) {
         return true;
     }
-    if (actualTheme == mux::ElementTheme::Light) {
+    if (actualTheme == winrt::Microsoft::UI::Xaml::ElementTheme::Light) {
         return false;
     }
     DWORD useLightTheme = 1;
@@ -2704,8 +2808,9 @@ static bool IsDarkThemeActive(
 
 // Select the Light or Dark half of a `LightIcon | DarkIcon` configuration
 // string
-static std::wstring ResolveThemedIconString(const std::wstring& rawSetting,
-                                            mux::ElementTheme theme) {
+static std::wstring ResolveThemedIconString(
+    const std::wstring& rawSetting,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     size_t pipePos = rawSetting.find(L'|');
     if (pipePos == std::wstring::npos) {
         return TrimWhitespaceAndQuotes(rawSetting);
@@ -2728,10 +2833,11 @@ static std::wstring ResolveThemedIconString(const std::wstring& rawSetting,
 
 // Attempt to build an ImageIcon or FontIcon for an item, returning nullptr if
 // neither resolves
-static muxc::IconElement TryCreateIconElement(
+static winrt::Microsoft::UI::Xaml::Controls::IconElement TryCreateIconElement(
     std::wstring const& iconSetting,
     std::wstring const& command,
-    mux::ElementTheme theme = mux::ElementTheme::Default) {
+    winrt::Microsoft::UI::Xaml::ElementTheme theme =
+        winrt::Microsoft::UI::Xaml::ElementTheme::Default) {
     std::wstring effectiveSetting = ResolveThemedIconString(iconSetting, theme);
 
     bool isPath =
@@ -2739,7 +2845,7 @@ static muxc::IconElement TryCreateIconElement(
     if (isPath || effectiveSetting.empty()) {
         if (auto source =
                 CreateImageSource(*GetIcon(effectiveSetting, command))) {
-            muxc::ImageIcon imageIcon;
+            winrt::Microsoft::UI::Xaml::Controls::ImageIcon imageIcon;
             imageIcon.Source(source);
             return imageIcon;
         }
@@ -2757,8 +2863,9 @@ static muxc::IconElement TryCreateIconElement(
 
 // Create an icon element for a toolbar button with fallback to a default Segoe
 // Fluent glyph
-static muxc::IconElement MakeCommandButtonIcon(ActionItem const& item,
-                                               mux::ElementTheme theme) {
+static winrt::Microsoft::UI::Xaml::Controls::IconElement MakeCommandButtonIcon(
+    ActionItem const& item,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     if (item.hideIcon) {
         return nullptr;
     }
@@ -2786,24 +2893,30 @@ static muxc::IconElement MakeCommandButtonIcon(ActionItem const& item,
 // Forward Declarations for CommandBar Coordination
 // ============================================================================
 
-static bool IsOurElement(muxc::ICommandBarElement const& command);
+static bool IsOurElement(
+    winrt::Microsoft::UI::Xaml::Controls::ICommandBarElement const& command);
 static void QueueCommandBarUpdate(
-    winrt::weak_ref<muxc::CommandBar> const& weakCommandBar,
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::CommandBar> const&
+        weakCommandBar,
     bool fullUpdate);
 
 // ============================================================================
 // System Default Buttons Visibility & Custom Label Overrides
 // ============================================================================
 
-// Tracked state for built-in Explorer UIElements so visibility and labels
-// restore cleanly on unload
+// Tracked state for built-in Explorer UIElements so visibility, identity, and
+// labels restore cleanly on unload
 struct ManagedElement {
-    winrt::weak_ref<mux::UIElement> element;
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::UIElement> element;
+    int identifiedIndex = -1;
+    bool hasIdentifiedIndex = false;
     bool hasOriginalVisibility = false;
-    mux::Visibility originalVisibility = mux::Visibility::Visible;
+    winrt::Microsoft::UI::Xaml::Visibility originalVisibility =
+        winrt::Microsoft::UI::Xaml::Visibility::Visible;
     bool hasOriginalOverflow = false;
-    muxc::CommandBarOverflowButtonVisibility originalOverflow =
-        muxc::CommandBarOverflowButtonVisibility::Auto;
+    winrt::Microsoft::UI::Xaml::Controls::CommandBarOverflowButtonVisibility
+        originalOverflow = winrt::Microsoft::UI::Xaml::Controls::
+            CommandBarOverflowButtonVisibility::Auto;
     bool watchedVisibility = false;
     int64_t visibilityToken = 0;
 
@@ -2811,8 +2924,9 @@ struct ManagedElement {
     winrt::hstring originalLabel;
     winrt::hstring originalAutomationName;
     bool hasOriginalLabelPosition = false;
-    muxc::CommandBarLabelPosition originalLabelPosition =
-        muxc::CommandBarLabelPosition::Default;
+    winrt::Microsoft::UI::Xaml::Controls::CommandBarLabelPosition
+        originalLabelPosition = winrt::Microsoft::UI::Xaml::Controls::
+            CommandBarLabelPosition::Default;
     bool hasOriginalIsCompact = false;
     bool originalIsCompact = false;
     bool watchedLabel = false;
@@ -2827,13 +2941,12 @@ enum class ManagedKind {
     Button,
     SeparatorAfter,
     GroupSeparator,
-    DetailsToggle,
     OverflowElement,
 };
 
 // Entry in a separator group tracking neighboring built-in buttons
 struct GroupMember {
-    winrt::weak_ref<mux::UIElement> element;
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::UIElement> element;
     int defaultButtonIndex;
 };
 
@@ -2851,7 +2964,8 @@ static thread_local int g_settingLabelDepth = 0;
 
 // Find an existing ManagedElement entry for a XAML UIElement on the current UI
 // thread
-static ManagedElement* FindManagedElement(mux::UIElement const& element) {
+static ManagedElement* FindManagedElement(
+    winrt::Microsoft::UI::Xaml::UIElement const& element) {
     for (auto& entry : g_managedElements) {
         if (entry.element.get() == element) {
             return &entry;
@@ -2862,7 +2976,8 @@ static ManagedElement* FindManagedElement(mux::UIElement const& element) {
 
 // Retrieve or allocate a ManagedElement entry while pruning expired weak
 // references
-static ManagedElement& GetManagedElement(mux::UIElement const& element) {
+static ManagedElement& GetManagedElement(
+    winrt::Microsoft::UI::Xaml::UIElement const& element) {
     std::erase_if(g_managedElements, [](ManagedElement const& entry) {
         return !entry.element.get();
     });
@@ -2877,34 +2992,42 @@ static ManagedElement& GetManagedElement(mux::UIElement const& element) {
 
 // Extract the SVG or Bitmap URI string from a built-in AppBarButton's Icon
 // property
-static std::wstring GetButtonIconUri(muxc::AppBarButton const& button) try {
+static std::wstring GetButtonIconUri(
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button) try {
     auto icon = button.Icon();
     if (!icon) {
         return std::wstring();
     }
 
-    wf::Uri uri{nullptr};
-    if (auto imageIcon = icon.try_as<muxc::ImageIcon>()) {
+    winrt::Windows::Foundation::Uri uri{nullptr};
+    if (auto imageIcon =
+            icon.try_as<winrt::Microsoft::UI::Xaml::Controls::ImageIcon>()) {
         if (auto source = imageIcon.Source()) {
             if (auto svgSource =
-                    source.try_as<muxm::Imaging::SvgImageSource>()) {
+                    source.try_as<winrt::Microsoft::UI::Xaml::Media::Imaging::
+                                      SvgImageSource>()) {
                 uri = svgSource.UriSource();
             }
         }
     } else if (auto iconSourceElement =
-                   icon.try_as<muxc::IconSourceElement>()) {
+                   icon.try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                   IconSourceElement>()) {
         if (auto iconSource = iconSourceElement.IconSource()) {
             if (auto imageIconSource =
-                    iconSource.try_as<muxc::ImageIconSource>()) {
+                    iconSource.try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                          ImageIconSource>()) {
                 if (auto source = imageIconSource.ImageSource()) {
                     if (auto svgSource =
-                            source.try_as<muxm::Imaging::SvgImageSource>()) {
+                            source.try_as<winrt::Microsoft::UI::Xaml::Media::
+                                              Imaging::SvgImageSource>()) {
                         uri = svgSource.UriSource();
                     }
                 }
             }
         }
-    } else if (auto bitmapIcon = icon.try_as<muxc::BitmapIcon>()) {
+    } else if (auto bitmapIcon =
+                   icon.try_as<
+                       winrt::Microsoft::UI::Xaml::Controls::BitmapIcon>()) {
         uri = bitmapIcon.UriSource();
     }
 
@@ -2917,18 +3040,34 @@ static std::wstring GetButtonIconUri(muxc::AppBarButton const& button) try {
 }
 
 // Read the UI Automation AutomationId string attached to a FrameworkElement
-static std::wstring GetAutomationId(mux::FrameworkElement const& element) {
+static std::wstring GetAutomationId(
+    winrt::Microsoft::UI::Xaml::FrameworkElement const& element) {
     try {
-        return std::wstring{
-            mux::Automation::AutomationProperties::GetAutomationId(element)};
+        return std::wstring{winrt::Microsoft::UI::Xaml::Automation::
+                                AutomationProperties::GetAutomationId(element)};
     } catch (...) {
         return std::wstring();
     }
 }
 
 // Identify which kDefaultButtons index a built-in Explorer AppBarButton
-// corresponds to
-static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
+// corresponds to, caching the result so custom labels never erase identity
+static int IdentifyDefaultButton(
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button) {
+    if (auto* managed = FindManagedElement(button);
+        managed && managed->hasIdentifiedIndex) {
+        return managed->identifiedIndex;
+    }
+
+    auto cacheAndReturn = [&](int idx) -> int {
+        if (idx >= 0) {
+            auto& entry = GetManagedElement(button);
+            entry.identifiedIndex = idx;
+            entry.hasIdentifiedIndex = true;
+        }
+        return idx;
+    };
+
     std::wstring uri = ToLower(GetButtonIconUri(button));
     std::wstring autoId = GetAutomationId(button);
 
@@ -2946,8 +3085,8 @@ static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
 
     std::wstring accessName;
     try {
-        accessName = std::wstring(
-            mux::Automation::AutomationProperties::GetName(button));
+        accessName = std::wstring(winrt::Microsoft::UI::Xaml::Automation::
+                                      AutomationProperties::GetName(button));
     } catch (...) {
     }
 
@@ -2958,13 +3097,23 @@ static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
                 ? std::wstring_view(uri)
                 : std::wstring_view(uri).substr(slash + 1);
         if (fileName.starts_with(L"windows.iconsize.")) {
-            return kViewButtonIndex;
+            return cacheAndReturn(kViewButtonIndex);
+        }
+        if (fileName.find(L"emptyrecyclebin") != std::wstring_view::npos) {
+            return cacheAndReturn(16);
+        }
+        if (fileName.find(L"restoreall") != std::wstring_view::npos) {
+            return cacheAndReturn(15);
+        }
+        if (fileName.find(L"undelete") != std::wstring_view::npos ||
+            fileName.find(L"restore") != std::wstring_view::npos) {
+            return cacheAndReturn(14);
         }
 
         for (int i = 0; i < kDefaultButtonCount; i++) {
             if (kDefaultButtons[i].svgFileName &&
                 fileName == kDefaultButtons[i].svgFileName) {
-                return i;
+                return cacheAndReturn(i);
             }
         }
     }
@@ -2976,7 +3125,7 @@ static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
                  autoId.find(target) != std::wstring::npos) ||
                 (!nameStr.empty() &&
                  nameStr.find(target) != std::wstring::npos)) {
-                return i;
+                return cacheAndReturn(i);
             }
         }
     }
@@ -2992,17 +3141,17 @@ static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
         hasPhrase(accessName, L"empty", L"recycle") ||
         hasPhrase(labelStr, L"empty", L"bin") ||
         hasPhrase(accessName, L"empty", L"bin")) {
-        return 16;
+        return cacheAndReturn(16);
     }
 
     if (hasPhrase(labelStr, L"restore", L"selected") ||
         hasPhrase(accessName, L"restore", L"selected")) {
-        return 14;
+        return cacheAndReturn(14);
     }
 
     if (hasPhrase(labelStr, L"restore", L"all") ||
         hasPhrase(accessName, L"restore", L"all")) {
-        return 15;
+        return cacheAndReturn(15);
     }
 
     return -1;
@@ -3010,8 +3159,9 @@ static int IdentifyDefaultButton(muxc::AppBarButton const& button) {
 
 // Apply user-configured text label overrides to built-in Explorer buttons and
 // track all 3 property tokens
-static void ApplyCustomLabel(muxc::AppBarButton const& button,
-                             int defaultButtonIndex) {
+static void ApplyCustomLabel(
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button,
+    int defaultButtonIndex) {
     if (defaultButtonIndex < 0 || defaultButtonIndex >= kDefaultButtonCount) {
         return;
     }
@@ -3027,6 +3177,8 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
     }
 
     auto& entry = GetManagedElement(button);
+    entry.identifiedIndex = defaultButtonIndex;
+    entry.hasIdentifiedIndex = true;
 
     // Save original label, automation name, label position, and compact state
     // once before overriding
@@ -3035,8 +3187,8 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
         if (currentLabel != overrideLabel) {
             entry.originalLabel = currentLabel;
             try {
-                entry.originalAutomationName =
-                    mux::Automation::AutomationProperties::GetName(button);
+                entry.originalAutomationName = winrt::Microsoft::UI::Xaml::
+                    Automation::AutomationProperties::GetName(button);
             } catch (...) {
             }
             entry.hasOriginalLabel = true;
@@ -3055,33 +3207,39 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
     // store every token for clean unload
     if (!entry.watchedLabel) {
         entry.labelToken = button.RegisterPropertyChangedCallback(
-            muxc::AppBarButton::LabelProperty(),
-            [defaultButtonIndex](mux::DependencyObject const& sender,
-                                 mux::DependencyProperty const&) {
+            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::LabelProperty(),
+            [defaultButtonIndex](
+                winrt::Microsoft::UI::Xaml::DependencyObject const& sender,
+                winrt::Microsoft::UI::Xaml::DependencyProperty const&) {
                 UiCallScope scope;
                 if (g_unloading || g_settingLabelDepth > 0) {
                     return;
                 }
-                if (auto btn = sender.try_as<muxc::AppBarButton>()) {
+                if (auto btn = sender.try_as<winrt::Microsoft::UI::Xaml::
+                                                 Controls::AppBarButton>()) {
                     ApplyCustomLabel(btn, defaultButtonIndex);
                 }
             });
 
         entry.labelPositionToken = button.RegisterPropertyChangedCallback(
-            muxc::AppBarButton::LabelPositionProperty(),
-            [](mux::DependencyObject const& sender,
-               mux::DependencyProperty const&) {
+            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::
+                LabelPositionProperty(),
+            [](winrt::Microsoft::UI::Xaml::DependencyObject const& sender,
+               winrt::Microsoft::UI::Xaml::DependencyProperty const&) {
                 UiCallScope scope;
                 if (g_unloading || g_settingLabelDepth > 0) {
                     return;
                 }
-                if (auto btn = sender.try_as<muxc::AppBarButton>()) {
+                if (auto btn = sender.try_as<winrt::Microsoft::UI::Xaml::
+                                                 Controls::AppBarButton>()) {
                     if (btn.LabelPosition() !=
-                        muxc::CommandBarLabelPosition::Default) {
+                        winrt::Microsoft::UI::Xaml::Controls::
+                            CommandBarLabelPosition::Default) {
                         g_settingLabelDepth++;
                         try {
                             btn.LabelPosition(
-                                muxc::CommandBarLabelPosition::Default);
+                                winrt::Microsoft::UI::Xaml::Controls::
+                                    CommandBarLabelPosition::Default);
                         } catch (...) {
                         }
                         g_settingLabelDepth--;
@@ -3090,14 +3248,16 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
             });
 
         entry.isCompactToken = button.RegisterPropertyChangedCallback(
-            muxc::AppBarButton::IsCompactProperty(),
-            [](mux::DependencyObject const& sender,
-               mux::DependencyProperty const&) {
+            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::
+                IsCompactProperty(),
+            [](winrt::Microsoft::UI::Xaml::DependencyObject const& sender,
+               winrt::Microsoft::UI::Xaml::DependencyProperty const&) {
                 UiCallScope scope;
                 if (g_unloading || g_settingLabelDepth > 0) {
                     return;
                 }
-                if (auto btn = sender.try_as<muxc::AppBarButton>()) {
+                if (auto btn = sender.try_as<winrt::Microsoft::UI::Xaml::
+                                                 Controls::AppBarButton>()) {
                     if (btn.IsCompact()) {
                         g_settingLabelDepth++;
                         try {
@@ -3116,18 +3276,20 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
         g_settingLabelDepth++;
         try {
             button.Label(overrideLabel);
-            mux::Automation::AutomationProperties::SetName(button,
-                                                           overrideLabel);
+            winrt::Microsoft::UI::Xaml::Automation::AutomationProperties::
+                SetName(button, overrideLabel);
         } catch (...) {
             Wh_Log(L"Error %08X", winrt::to_hresult().value);
         }
         g_settingLabelDepth--;
     }
 
-    if (button.LabelPosition() != muxc::CommandBarLabelPosition::Default) {
+    if (button.LabelPosition() != winrt::Microsoft::UI::Xaml::Controls::
+                                      CommandBarLabelPosition::Default) {
         g_settingLabelDepth++;
         try {
-            button.LabelPosition(muxc::CommandBarLabelPosition::Default);
+            button.LabelPosition(winrt::Microsoft::UI::Xaml::Controls::
+                                     CommandBarLabelPosition::Default);
         } catch (...) {
         }
         g_settingLabelDepth--;
@@ -3144,7 +3306,8 @@ static void ApplyCustomLabel(muxc::AppBarButton const& button,
 }
 
 // Query Explorer's underlying intended visibility for a managed element
-static mux::Visibility EffectiveVisibility(mux::UIElement const& element) {
+static winrt::Microsoft::UI::Xaml::Visibility EffectiveVisibility(
+    winrt::Microsoft::UI::Xaml::UIElement const& element) {
     auto* entry = FindManagedElement(element);
     if (entry && entry->hasOriginalVisibility) {
         return entry->originalVisibility;
@@ -3170,7 +3333,8 @@ static bool IsGroupHidden(
             ShouldHide({ManagedKind::Button, member.defaultButtonIndex})) {
             continue;
         }
-        if (EffectiveVisibility(element) == mux::Visibility::Collapsed) {
+        if (EffectiveVisibility(element) ==
+            winrt::Microsoft::UI::Xaml::Visibility::Collapsed) {
             continue;
         }
         return false;
@@ -3191,8 +3355,6 @@ static bool ShouldHide(ManagedTarget const& target) {
             return g_settings.hideDefaultButtons[target.index];
         case ManagedKind::SeparatorAfter:
             return g_settings.hideSeparatorAfterButton[target.index];
-        case ManagedKind::DetailsToggle:
-            return g_settings.hideDetailsButton;
         case ManagedKind::OverflowElement:
             return g_settings.hideMoreButton;
         case ManagedKind::GroupSeparator:
@@ -3203,8 +3365,9 @@ static bool ShouldHide(ManagedTarget const& target) {
 
 // Mutate a UIElement's Visibility while suppressing self-triggered visibility
 // property callbacks
-static void SetVisibilityInternal(mux::UIElement const& element,
-                                  mux::Visibility visibility) {
+static void SetVisibilityInternal(
+    winrt::Microsoft::UI::Xaml::UIElement const& element,
+    winrt::Microsoft::UI::Xaml::Visibility visibility) {
     g_settingVisibilityDepth++;
     try {
         element.Visibility(visibility);
@@ -3216,23 +3379,28 @@ static void SetVisibilityInternal(mux::UIElement const& element,
 
 // Subscribe to VisibilityProperty changes so Explorer cannot un-hide buttons
 // suppressed by user settings
-static void WatchVisibility(mux::UIElement const& element,
-                            ManagedTarget const& target,
-                            winrt::weak_ref<muxc::CommandBar> const& owner) {
+static void WatchVisibility(
+    winrt::Microsoft::UI::Xaml::UIElement const& element,
+    ManagedTarget const& target,
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::CommandBar> const&
+        owner) {
     int64_t token = element.RegisterPropertyChangedCallback(
-        mux::UIElement::VisibilityProperty(),
-        [target, owner](mux::DependencyObject const& sender,
-                        mux::DependencyProperty const&) {
+        winrt::Microsoft::UI::Xaml::UIElement::VisibilityProperty(),
+        [target, owner](
+            winrt::Microsoft::UI::Xaml::DependencyObject const& sender,
+            winrt::Microsoft::UI::Xaml::DependencyProperty const&) {
             UiCallScope scope;
             if (g_unloading || g_settingVisibilityDepth > 0) {
                 return;
             }
-            auto uiElement = sender.try_as<mux::UIElement>();
+            auto uiElement =
+                sender.try_as<winrt::Microsoft::UI::Xaml::UIElement>();
             if (!uiElement) {
                 return;
             }
 
-            mux::Visibility visibility = uiElement.Visibility();
+            winrt::Microsoft::UI::Xaml::Visibility visibility =
+                uiElement.Visibility();
             {
                 auto& entry = GetManagedElement(uiElement);
                 entry.originalVisibility = visibility;
@@ -3240,9 +3408,12 @@ static void WatchVisibility(mux::UIElement const& element,
             }
 
             if (target.kind != ManagedKind::GroupSeparator &&
-                visibility != mux::Visibility::Collapsed &&
+                visibility !=
+                    winrt::Microsoft::UI::Xaml::Visibility::Collapsed &&
                 ShouldHide(target)) {
-                SetVisibilityInternal(uiElement, mux::Visibility::Collapsed);
+                SetVisibilityInternal(
+                    uiElement,
+                    winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
             }
             QueueCommandBarUpdate(owner, false);
         });
@@ -3254,11 +3425,12 @@ static void WatchVisibility(mux::UIElement const& element,
 
 // Apply or restore managed visibility on a built-in UIElement
 static void SetManagedVisibility(
-    mux::UIElement const& element,
+    winrt::Microsoft::UI::Xaml::UIElement const& element,
     ManagedTarget const& target,
     bool forceShow,
-    winrt::weak_ref<muxc::CommandBar> const& owner) {
-    mux::Visibility original;
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::CommandBar> const&
+        owner) {
+    winrt::Microsoft::UI::Xaml::Visibility original;
     bool watch;
     {
         auto& entry = GetManagedElement(element);
@@ -3273,20 +3445,26 @@ static void SetManagedVisibility(
     if (watch) {
         WatchVisibility(element, target, owner);
     }
-    SetVisibilityInternal(element, !forceShow && ShouldHide(target)
-                                       ? mux::Visibility::Collapsed
-                                       : original);
+    SetVisibilityInternal(
+        element, !forceShow && ShouldHide(target)
+                     ? winrt::Microsoft::UI::Xaml::Visibility::Collapsed
+                     : original);
 }
 
 // Recursively locate a named child FrameworkElement inside a CommandBar's XAML
 // template
-static mux::FrameworkElement FindDescendantByName(
-    mux::DependencyObject const& root,
+static winrt::Microsoft::UI::Xaml::FrameworkElement FindDescendantByName(
+    winrt::Microsoft::UI::Xaml::DependencyObject const& root,
     std::wstring_view name) {
-    int count = muxm::VisualTreeHelper::GetChildrenCount(root);
+    int count =
+        winrt::Microsoft::UI::Xaml::Media::VisualTreeHelper::GetChildrenCount(
+            root);
     for (int i = 0; i < count; i++) {
-        auto child = muxm::VisualTreeHelper::GetChild(root, i);
-        if (auto element = child.try_as<mux::FrameworkElement>();
+        auto child =
+            winrt::Microsoft::UI::Xaml::Media::VisualTreeHelper::GetChild(root,
+                                                                          i);
+        if (auto element =
+                child.try_as<winrt::Microsoft::UI::Xaml::FrameworkElement>();
             element && element.Name() == name) {
             return element;
         }
@@ -3299,8 +3477,9 @@ static mux::FrameworkElement FindDescendantByName(
 
 // Scan a CommandBar's PrimaryCommands to enforce built-in button hiding,
 // separator hiding, and custom labels
-static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
-                                         bool forceShow = false) {
+static void ApplyDefaultButtonVisibility(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar,
+    bool forceShow = false) {
     bool hideMore;
     {
         std::lock_guard<std::mutex> lock(g_settings.mutex);
@@ -3309,17 +3488,19 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
 
     bool isPrimary = commandBar.Name() == L"FileExplorerCommandBar";
     auto weakCommandBar = winrt::make_weak(commandBar);
-    auto setVisibility = [&weakCommandBar, forceShow](
-                             mux::UIElement const& element,
-                             ManagedTarget const& target) {
-        SetManagedVisibility(element, target, forceShow, weakCommandBar);
-    };
+    auto setVisibility =
+        [&weakCommandBar, forceShow](
+            winrt::Microsoft::UI::Xaml::UIElement const& element,
+            ManagedTarget const& target) {
+            SetManagedVisibility(element, target, forceShow, weakCommandBar);
+        };
 
     auto commands = commandBar.PrimaryCommands();
     uint32_t count = commands.Size();
 
     struct ScannedEntry {
-        muxc::ICommandBarElement command{nullptr};
+        winrt::Microsoft::UI::Xaml::Controls::ICommandBarElement command{
+            nullptr};
         bool isOurs = false;
         bool isSeparator = false;
         bool isDetailsToggle = false;
@@ -3335,10 +3516,14 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
         entry.isOurs = IsOurElement(entry.command);
         entry.isSeparator =
             !entry.isOurs &&
-            static_cast<bool>(entry.command.try_as<muxc::AppBarSeparator>());
+            static_cast<bool>(
+                entry.command.try_as<
+                    winrt::Microsoft::UI::Xaml::Controls::AppBarSeparator>());
 
         if (!entry.isOurs && !entry.isSeparator) {
-            if (auto button = entry.command.try_as<muxc::AppBarButton>()) {
+            if (auto button =
+                    entry.command.try_as<
+                        winrt::Microsoft::UI::Xaml::Controls::AppBarButton>()) {
                 int defIdx = IdentifyDefaultButton(button);
                 if (defIdx == kDetailsButtonIndex ||
                     GetAutomationId(button) == L"DetailsPaneToggleButton") {
@@ -3380,7 +3565,9 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
             if (entry.isSeparator || entry.isOurs) {
                 break;
             }
-            if (auto element = entry.command.try_as<mux::UIElement>()) {
+            if (auto element =
+                    entry.command
+                        .try_as<winrt::Microsoft::UI::Xaml::UIElement>()) {
                 group->push_back(
                     {winrt::make_weak(element), entry.defaultIndex});
             }
@@ -3397,7 +3584,8 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
         }
 
         if (entry.isSeparator) {
-            auto separator = entry.command.as<muxc::AppBarSeparator>();
+            auto separator = entry.command.as<
+                winrt::Microsoft::UI::Xaml::Controls::AppBarSeparator>();
             int target = -1;
             if (prevIndex == kNewButtonIndex) {
                 target = kNewButtonIndex;
@@ -3418,8 +3606,10 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
         }
 
         if (entry.isDetailsToggle) {
-            auto button = entry.command.as<muxc::AppBarButton>();
-            setVisibility(button, {ManagedKind::DetailsToggle});
+            auto button =
+                entry.command
+                    .as<winrt::Microsoft::UI::Xaml::Controls::AppBarButton>();
+            setVisibility(button, {ManagedKind::Button, kDetailsButtonIndex});
             if (!forceShow) {
                 ApplyCustomLabel(button, kDetailsButtonIndex);
             }
@@ -3428,7 +3618,9 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
         }
 
         if (entry.defaultIndex >= 0) {
-            auto button = entry.command.as<muxc::AppBarButton>();
+            auto button =
+                entry.command
+                    .as<winrt::Microsoft::UI::Xaml::Controls::AppBarButton>();
             if (forceShow) {
                 if (auto* managed = FindManagedElement(button);
                     managed && managed->hasOriginalVisibility) {
@@ -3447,7 +3639,8 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
     }
 
     if (isPrimary) {
-        muxc::CommandBarOverflowButtonVisibility originalOverflow;
+        winrt::Microsoft::UI::Xaml::Controls::CommandBarOverflowButtonVisibility
+            originalOverflow;
         {
             auto& entry = GetManagedElement(commandBar);
             if (!entry.hasOriginalOverflow) {
@@ -3459,7 +3652,8 @@ static void ApplyDefaultButtonVisibility(muxc::CommandBar const& commandBar,
 
         commandBar.OverflowButtonVisibility(
             !forceShow && hideMore
-                ? muxc::CommandBarOverflowButtonVisibility::Collapsed
+                ? winrt::Microsoft::UI::Xaml::Controls::
+                      CommandBarOverflowButtonVisibility::Collapsed
                 : originalOverflow);
         if (auto overflowSeparator =
                 FindDescendantByName(commandBar, L"OverflowSeparator")) {
@@ -3481,7 +3675,9 @@ static void UnwatchManagedElementsForCurrentThread() {
             if (element) {
                 try {
                     element.UnregisterPropertyChangedCallback(
-                        mux::UIElement::VisibilityProperty(), token);
+                        winrt::Microsoft::UI::Xaml::UIElement::
+                            VisibilityProperty(),
+                        token);
                 } catch (...) {
                     Wh_Log(L"Error %08X", winrt::to_hresult().value);
                 }
@@ -3497,21 +3693,28 @@ static void UnwatchManagedElementsForCurrentThread() {
             entry.labelPositionToken = 0;
             entry.isCompactToken = 0;
             if (element) {
-                if (auto button = element.try_as<muxc::AppBarButton>()) {
+                if (auto button =
+                        element.try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                           AppBarButton>()) {
                     try {
                         button.UnregisterPropertyChangedCallback(
-                            muxc::AppBarButton::LabelProperty(), lblToken);
+                            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::
+                                LabelProperty(),
+                            lblToken);
                     } catch (...) {
                     }
                     try {
                         button.UnregisterPropertyChangedCallback(
-                            muxc::AppBarButton::LabelPositionProperty(),
+                            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::
+                                LabelPositionProperty(),
                             posToken);
                     } catch (...) {
                     }
                     try {
                         button.UnregisterPropertyChangedCallback(
-                            muxc::AppBarButton::IsCompactProperty(), cmpToken);
+                            winrt::Microsoft::UI::Xaml::Controls::AppBarButton::
+                                IsCompactProperty(),
+                            cmpToken);
                     } catch (...) {
                     }
                 }
@@ -3519,13 +3722,16 @@ static void UnwatchManagedElementsForCurrentThread() {
         }
 
         if (element) {
-            if (auto button = element.try_as<muxc::AppBarButton>()) {
+            if (auto button =
+                    element.try_as<
+                        winrt::Microsoft::UI::Xaml::Controls::AppBarButton>()) {
                 g_settingLabelDepth++;
                 if (entry.hasOriginalLabel) {
                     try {
                         button.Label(entry.originalLabel);
-                        mux::Automation::AutomationProperties::SetName(
-                            button, entry.originalAutomationName);
+                        winrt::Microsoft::UI::Xaml::Automation::
+                            AutomationProperties::SetName(
+                                button, entry.originalAutomationName);
                     } catch (...) {
                     }
                     entry.hasOriginalLabel = false;
@@ -3560,8 +3766,10 @@ static void ForgetManagedElementsForCurrentThread() {
 // ============================================================================
 
 // Check whether a CommandBar element was created by this mod
-static bool IsOurElement(muxc::ICommandBarElement const& command) {
-    auto element = command.try_as<mux::FrameworkElement>();
+static bool IsOurElement(
+    winrt::Microsoft::UI::Xaml::Controls::ICommandBarElement const& command) {
+    auto element =
+        command.try_as<winrt::Microsoft::UI::Xaml::FrameworkElement>();
     if (!element) {
         return false;
     }
@@ -3570,7 +3778,8 @@ static bool IsOurElement(muxc::ICommandBarElement const& command) {
 }
 
 // Check whether a CommandBar already contains our custom toolbar elements
-static bool HasOurElements(muxc::CommandBar const& commandBar) {
+static bool HasOurElements(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar) {
     for (auto const& command : commandBar.PrimaryCommands()) {
         if (IsOurElement(command)) {
             return true;
@@ -3581,8 +3790,8 @@ static bool HasOurElements(muxc::CommandBar const& commandBar) {
 
 // Timer entry managing delayed hover-open flyout activation on dropdown buttons
 struct HoverTimerEntry {
-    winrt::weak_ref<muxc::AppBarButton> button;
-    mux::DispatcherTimer timer{nullptr};
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::AppBarButton> button;
+    winrt::Microsoft::UI::Xaml::DispatcherTimer timer{nullptr};
     winrt::event_token tickToken{};
 };
 
@@ -3602,9 +3811,10 @@ static void ReleaseHoverTimer(HoverTimerEntry const& entry) {
 }
 
 // Record a hover DispatcherTimer while cleaning up timers for destroyed buttons
-static void TrackHoverTimer(muxc::AppBarButton const& button,
-                            mux::DispatcherTimer const& timer,
-                            winrt::event_token tickToken) {
+static void TrackHoverTimer(
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button,
+    winrt::Microsoft::UI::Xaml::DispatcherTimer const& timer,
+    winrt::event_token tickToken) {
     for (auto it = g_hoverTimers.begin(); it != g_hoverTimers.end();) {
         if (!it->button.get()) {
             ReleaseHoverTimer(*it);
@@ -3627,15 +3837,17 @@ static void StopHoverTimersForCurrentThread() {
 
 // Attach unload-safe pointer hover handlers to automatically open a menu
 // button's flyout
-static void SetUpOpenOnHover(muxc::AppBarButton const& button,
-                             int hoverDelayMs,
-                             std::function<void()> const& open) {
+static void SetUpOpenOnHover(
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button,
+    int hoverDelayMs,
+    std::function<void()> const& open) {
     if (hoverDelayMs <= 0) {
         TrackRevoker(button,
                      button.PointerEntered(
                          winrt::auto_revoke,
-                         [open](wf::IInspectable const&,
-                                mux::Input::PointerRoutedEventArgs const&) {
+                         [open](winrt::Windows::Foundation::IInspectable const&,
+                                winrt::Microsoft::UI::Xaml::Input::
+                                    PointerRoutedEventArgs const&) {
                              UiCallScope scope;
                              if (!g_unloading) {
                                  open();
@@ -3644,13 +3856,15 @@ static void SetUpOpenOnHover(muxc::AppBarButton const& button,
         return;
     }
 
-    mux::DispatcherTimer timer;
+    winrt::Microsoft::UI::Xaml::DispatcherTimer timer;
     timer.Interval(std::chrono::milliseconds(hoverDelayMs));
 
     auto tickToken = timer.Tick(
-        [open](wf::IInspectable const& sender, wf::IInspectable const&) {
+        [open](winrt::Windows::Foundation::IInspectable const& sender,
+               winrt::Windows::Foundation::IInspectable const&) {
             UiCallScope scope;
-            if (auto t = sender.try_as<mux::DispatcherTimer>()) {
+            if (auto t = sender.try_as<
+                         winrt::Microsoft::UI::Xaml::DispatcherTimer>()) {
                 t.Stop();
             }
             if (!g_unloading) {
@@ -3663,8 +3877,9 @@ static void SetUpOpenOnHover(muxc::AppBarButton const& button,
     TrackRevoker(button,
                  button.PointerEntered(
                      winrt::auto_revoke,
-                     [timer](wf::IInspectable const&,
-                             mux::Input::PointerRoutedEventArgs const&) {
+                     [timer](winrt::Windows::Foundation::IInspectable const&,
+                             winrt::Microsoft::UI::Xaml::Input::
+                                 PointerRoutedEventArgs const&) {
                          UiCallScope scope;
                          if (!g_unloading) {
                              timer.Stop();
@@ -3672,13 +3887,15 @@ static void SetUpOpenOnHover(muxc::AppBarButton const& button,
                          }
                      }));
 
-    auto stopTimer = [timer](wf::IInspectable const&,
-                             mux::Input::PointerRoutedEventArgs const&) {
-        UiCallScope scope;
-        if (!g_unloading) {
-            timer.Stop();
-        }
-    };
+    auto stopTimer =
+        [timer](
+            winrt::Windows::Foundation::IInspectable const&,
+            winrt::Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const&) {
+            UiCallScope scope;
+            if (!g_unloading) {
+                timer.Stop();
+            }
+        };
     TrackRevoker(button, button.PointerExited(winrt::auto_revoke, stopTimer));
     TrackRevoker(button, button.PointerCanceled(winrt::auto_revoke, stopTimer));
 }
@@ -3686,7 +3903,7 @@ static void SetUpOpenOnHover(muxc::AppBarButton const& button,
 // Create a weak-referenced callback that opens an AppBarButton's Flyout if not
 // already open
 static std::function<void()> MakeShowFlyoutAction(
-    muxc::AppBarButton const& button) {
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton const& button) {
     return [weakButton = winrt::make_weak(button)]() {
         UiCallScope scope;
         auto btn = weakButton.get();
@@ -3701,26 +3918,29 @@ static std::function<void()> MakeShowFlyoutAction(
 
 // Instantiate a tagged AppBarButton with tooltip, icon, and label visibility
 // configuration
-static muxc::AppBarButton CreateBareButton(int index,
-                                           std::wstring const& tooltip,
-                                           std::wstring const& labelText,
-                                           muxc::IconElement const& icon,
-                                           bool showLabel = false) {
+static winrt::Microsoft::UI::Xaml::Controls::AppBarButton CreateBareButton(
+    int index,
+    std::wstring const& tooltip,
+    std::wstring const& labelText,
+    winrt::Microsoft::UI::Xaml::Controls::IconElement const& icon,
+    bool showLabel = false) {
     std::wstring name = kButtonNamePrefix;
     name += L'_';
     name += std::to_wstring(index);
 
-    muxc::AppBarButton button;
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton button;
     button.Name(name.c_str());
 
     std::wstring displayLabel = labelText.empty() ? tooltip : labelText;
     button.Label(displayLabel.c_str());
-    button.LabelPosition(showLabel ? muxc::CommandBarLabelPosition::Default
-                                   : muxc::CommandBarLabelPosition::Collapsed);
+    button.LabelPosition(showLabel ? winrt::Microsoft::UI::Xaml::Controls::
+                                         CommandBarLabelPosition::Default
+                                   : winrt::Microsoft::UI::Xaml::Controls::
+                                         CommandBarLabelPosition::Collapsed);
     button.Icon(icon);
 
     if (!tooltip.empty()) {
-        muxc::ToolTipService::SetToolTip(
+        winrt::Microsoft::UI::Xaml::Controls::ToolTipService::SetToolTip(
             button, winrt::box_value(winrt::hstring{tooltip}));
     }
 
@@ -3728,9 +3948,10 @@ static muxc::AppBarButton CreateBareButton(int index,
 }
 
 // Create a clickable single-action toolbar AppBarButton
-static muxc::AppBarButton CreateActionButton(ActionItem const& item,
-                                             int index,
-                                             mux::ElementTheme theme) {
+static winrt::Microsoft::UI::Xaml::Controls::AppBarButton CreateActionButton(
+    ActionItem const& item,
+    int index,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     std::wstring displayLabel = item.GetDisplayLabel();
     ExplorerContext emptyCtx;
     std::wstring fullResolved = (displayLabel.find(L'%') != std::wstring::npos)
@@ -3739,41 +3960,48 @@ static muxc::AppBarButton CreateActionButton(ActionItem const& item,
     std::wstring displayResolved =
         TruncateWithEllipsis(fullResolved, kMaxToolbarLabelLength);
 
-    muxc::AppBarButton button =
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton button =
         CreateBareButton(index, fullResolved, displayResolved,
                          MakeCommandButtonIcon(item, theme), item.showLabel);
 
     TrackRevoker(
         button,
-        button.Click(winrt::auto_revoke, [item](wf::IInspectable const& sender,
-                                                mux::RoutedEventArgs const&) {
-            UiCallScope scope;
-            if (g_unloading) {
-                return;
-            }
-            if (auto element = sender.try_as<mux::FrameworkElement>()) {
-                OnActionInvoked(element, item);
-            }
-        }));
+        button.Click(
+            winrt::auto_revoke,
+            [item](winrt::Windows::Foundation::IInspectable const& sender,
+                   winrt::Microsoft::UI::Xaml::RoutedEventArgs const&) {
+                UiCallScope scope;
+                if (g_unloading) {
+                    return;
+                }
+                if (auto element =
+                        sender.try_as<
+                            winrt::Microsoft::UI::Xaml::FrameworkElement>()) {
+                    OnActionInvoked(element, item);
+                }
+            }));
 
     return button;
 }
 
 static void AppendMenuEntries(
     std::vector<ActionItem> const& items,
-    wfc::IVector<muxc::MenuFlyoutItemBase> const& target,
-    winrt::weak_ref<muxc::AppBarButton> const& weakButton,
-    mux::ElementTheme theme);
+    winrt::Windows::Foundation::Collections::IVector<
+        winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutItemBase> const& target,
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::AppBarButton> const&
+        weakButton,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme);
 
 // Build a MenuFlyoutItem or nested MenuFlyoutSubItem for a dropdown menu entry
-static muxc::MenuFlyoutItemBase CreateMenuEntry(
+static winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutItemBase CreateMenuEntry(
     ActionItem const& item,
-    winrt::weak_ref<muxc::AppBarButton> const& weakButton,
-    mux::ElementTheme theme) {
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::AppBarButton> const&
+        weakButton,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     std::wstring displayLabel = item.GetDisplayLabel();
 
     if (item.isMenu && !item.subItems.empty()) {
-        muxc::MenuFlyoutSubItem subMenu;
+        winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutSubItem subMenu;
         subMenu.Text(displayLabel.c_str());
         if (!item.hideIcon) {
             if (auto icon =
@@ -3785,7 +4013,7 @@ static muxc::MenuFlyoutItemBase CreateMenuEntry(
         return subMenu;
     }
 
-    muxc::MenuFlyoutItem menuItem;
+    winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutItem menuItem;
     menuItem.Text(displayLabel.c_str());
     if (!item.hideIcon) {
         if (auto icon = TryCreateIconElement(item.icon, item.command, theme)) {
@@ -3793,18 +4021,20 @@ static muxc::MenuFlyoutItemBase CreateMenuEntry(
         }
     }
 
-    TrackRevoker(menuItem, menuItem.Click(
-                               winrt::auto_revoke,
-                               [item, weakButton](wf::IInspectable const&,
-                                                  mux::RoutedEventArgs const&) {
-                                   UiCallScope scope;
-                                   if (g_unloading) {
-                                       return;
-                                   }
-                                   if (auto button = weakButton.get()) {
-                                       OnActionInvoked(button, item);
-                                   }
-                               }));
+    TrackRevoker(
+        menuItem,
+        menuItem.Click(winrt::auto_revoke,
+                       [item, weakButton](
+                           winrt::Windows::Foundation::IInspectable const&,
+                           winrt::Microsoft::UI::Xaml::RoutedEventArgs const&) {
+                           UiCallScope scope;
+                           if (g_unloading) {
+                               return;
+                           }
+                           if (auto button = weakButton.get()) {
+                               OnActionInvoked(button, item);
+                           }
+                       }));
 
     return menuItem;
 }
@@ -3813,16 +4043,20 @@ static muxc::MenuFlyoutItemBase CreateMenuEntry(
 // separators
 static void AppendMenuEntries(
     std::vector<ActionItem> const& items,
-    wfc::IVector<muxc::MenuFlyoutItemBase> const& target,
-    winrt::weak_ref<muxc::AppBarButton> const& weakButton,
-    mux::ElementTheme theme) {
+    winrt::Windows::Foundation::Collections::IVector<
+        winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutItemBase> const& target,
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::AppBarButton> const&
+        weakButton,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     for (auto const& item : items) {
         if (item.separatorBefore) {
-            target.Append(muxc::MenuFlyoutSeparator());
+            target.Append(
+                winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutSeparator());
         }
         target.Append(CreateMenuEntry(item, weakButton, theme));
         if (item.separatorAfter) {
-            target.Append(muxc::MenuFlyoutSeparator());
+            target.Append(
+                winrt::Microsoft::UI::Xaml::Controls::MenuFlyoutSeparator());
         }
     }
 }
@@ -3838,8 +4072,8 @@ static bool SubTreeHasTokens(std::vector<ActionItem> const& items) {
     return false;
 }
 
-// Resolve dynamic label tokens recursively across a menu subtree prior to
-// flyout display
+// Resolve dynamic label tokens and clamp lengths recursively across an entire
+// menu subtree prior to flyout display
 static void ResolveSubTreeLabels(std::vector<ActionItem>& items,
                                  ExplorerContext const& ctx) {
     for (auto& entry : items) {
@@ -3857,11 +4091,12 @@ static void ResolveSubTreeLabels(std::vector<ActionItem>& items,
 
 // Create a dropdown menu toolbar button that lazily populates and updates
 // sub-items on flyout open
-static muxc::AppBarButton CreateMenuButton(ActionItem const& item,
-                                           int index,
-                                           bool openOnHover,
-                                           int hoverDelayMs,
-                                           mux::ElementTheme theme) {
+static winrt::Microsoft::UI::Xaml::Controls::AppBarButton CreateMenuButton(
+    ActionItem const& item,
+    int index,
+    bool openOnHover,
+    int hoverDelayMs,
+    winrt::Microsoft::UI::Xaml::ElementTheme theme) {
     static constexpr const WCHAR* kMenuArrow = L"\u25BE";
 
     std::wstring displayLabel = item.GetDisplayLabel();
@@ -3877,69 +4112,68 @@ static muxc::AppBarButton CreateMenuButton(ActionItem const& item,
                                   ? (truncatedDisplay + L" " + kMenuArrow)
                                   : std::wstring(kMenuArrow);
 
-    muxc::AppBarButton button =
+    winrt::Microsoft::UI::Xaml::Controls::AppBarButton button =
         CreateBareButton(index, fullResolved, finalLabel,
                          MakeCommandButtonIcon(item, theme), true);
 
     auto weakButton = winrt::make_weak(button);
 
-    muxc::MenuFlyout menu;
-    menu.Placement(
-        muxc::Primitives::FlyoutPlacementMode::BottomEdgeAlignedLeft);
+    winrt::Microsoft::UI::Xaml::Controls::MenuFlyout menu;
+    menu.Placement(winrt::Microsoft::UI::Xaml::Controls::Primitives::
+                       FlyoutPlacementMode::BottomEdgeAlignedLeft);
 
     bool hasChildTokens = SubTreeHasTokens(item.subItems);
 
-    auto ensureMenuEntries = [subItems = item.subItems, weakButton,
-                              hasChildTokens](muxc::MenuFlyout const& flyout) {
-        UiCallScope scope;
-        if (g_unloading || !flyout) {
-            return;
-        }
-        try {
-            if (flyout.Items().Size() > 0 && !hasChildTokens) {
+    auto ensureMenuEntries =
+        [subItems = item.subItems, weakButton, hasChildTokens](
+            winrt::Microsoft::UI::Xaml::Controls::MenuFlyout const& flyout) {
+            UiCallScope scope;
+            if (g_unloading || !flyout) {
                 return;
             }
-
-            mux::ElementTheme currentTheme = mux::ElementTheme::Default;
-            HWND hWnd = nullptr;
-            if (auto btn = weakButton.get()) {
-                currentTheme = btn.ActualTheme();
-                hWnd = GetExplorerWindowForElement(btn);
-            }
-
-            ExplorerContext ctx;
-            if (hasChildTokens && hWnd) {
-                if (auto sv = GetActiveShellView(hWnd)) {
-                    ctx = GetLightweightContextFromView(sv.get());
+            try {
+                if (flyout.Items().Size() > 0 && !hasChildTokens) {
+                    return;
                 }
-            }
 
-            flyout.Items().Clear();
+                winrt::Microsoft::UI::Xaml::ElementTheme currentTheme =
+                    winrt::Microsoft::UI::Xaml::ElementTheme::Default;
+                HWND hWnd = nullptr;
+                if (auto btn = weakButton.get()) {
+                    currentTheme = btn.ActualTheme();
+                    hWnd = GetExplorerWindowForElement(btn);
+                }
 
-            std::vector<ActionItem> resolvedList = subItems;
-            if (hasChildTokens) {
+                ExplorerContext ctx;
+                if (hasChildTokens && hWnd) {
+                    if (auto sv = GetActiveShellView(hWnd)) {
+                        ctx = GetLightweightContextFromView(sv.get());
+                    }
+                }
+
+                flyout.Items().Clear();
+
+                std::vector<ActionItem> resolvedList = subItems;
                 ResolveSubTreeLabels(resolvedList, ctx);
-            } else {
-                for (auto& entry : resolvedList) {
-                    entry.labelText = TruncateWithEllipsis(
-                        entry.GetDisplayLabel(), kMaxMenuItemLabelLength);
-                }
-            }
 
-            AppendMenuEntries(resolvedList, flyout.Items(), weakButton,
-                              currentTheme);
-        } catch (...) {
-            Wh_Log(L"Error %08X", winrt::to_hresult().value);
-        }
-    };
+                AppendMenuEntries(resolvedList, flyout.Items(), weakButton,
+                                  currentTheme);
+            } catch (...) {
+                Wh_Log(L"Error %08X", winrt::to_hresult().value);
+            }
+        };
 
     TrackRevoker(
         menu,
-        menu.Opening(winrt::auto_revoke,
-                     [ensureMenuEntries](wf::IInspectable const& sender,
-                                         wf::IInspectable const&) {
-                         ensureMenuEntries(sender.try_as<muxc::MenuFlyout>());
-                     }));
+        menu.Opening(
+            winrt::auto_revoke,
+            [ensureMenuEntries](
+                winrt::Windows::Foundation::IInspectable const& sender,
+                winrt::Windows::Foundation::IInspectable const&) {
+                ensureMenuEntries(
+                    sender.try_as<
+                        winrt::Microsoft::UI::Xaml::Controls::MenuFlyout>());
+            }));
 
     button.Flyout(menu);
     if (openOnHover) {
@@ -3950,7 +4184,8 @@ static muxc::AppBarButton CreateMenuButton(ActionItem const& item,
 
 // Inject configured custom buttons, menus, and separators into the target
 // CommandBar
-static void EnsureActionButtons(muxc::CommandBar const& commandBar) {
+static void EnsureActionButtons(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar) {
     if (g_unloading || HasOurElements(commandBar)) {
         return;
     }
@@ -3971,7 +4206,7 @@ static void EnsureActionButtons(muxc::CommandBar const& commandBar) {
 
     Wh_Log(L"Adding %zu items to command bar", items.size());
     auto commands = commandBar.PrimaryCommands();
-    mux::ElementTheme theme = commandBar.ActualTheme();
+    winrt::Microsoft::UI::Xaml::ElementTheme theme = commandBar.ActualTheme();
 
     // Guard PrimaryCommands mutations to prevent self-triggering VectorChanged
     // update storms
@@ -3979,26 +4214,30 @@ static void EnsureActionButtons(muxc::CommandBar const& commandBar) {
     try {
         auto insertSeparatorSafe = [&](uint32_t& index,
                                        const std::wstring& name) {
-            if (index > 0 &&
-                commands.GetAt(index - 1).try_as<muxc::AppBarSeparator>()) {
+            if (index > 0 && commands.GetAt(index - 1)
+                                 .try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                             AppBarSeparator>()) {
                 return;
             }
             if (index < commands.Size() &&
-                commands.GetAt(index).try_as<muxc::AppBarSeparator>()) {
+                commands.GetAt(index)
+                    .try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                AppBarSeparator>()) {
                 return;
             }
-            muxc::AppBarSeparator separator;
+            winrt::Microsoft::UI::Xaml::Controls::AppBarSeparator separator;
             separator.Name(name.c_str());
             commands.InsertAt(index++, separator);
         };
 
         auto appendSeparatorSafe = [&](const std::wstring& name) {
             uint32_t count = commands.Size();
-            if (count == 0 ||
-                commands.GetAt(count - 1).try_as<muxc::AppBarSeparator>()) {
+            if (count == 0 || commands.GetAt(count - 1)
+                                  .try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                              AppBarSeparator>()) {
                 return;
             }
-            muxc::AppBarSeparator separator;
+            winrt::Microsoft::UI::Xaml::Controls::AppBarSeparator separator;
             separator.Name(name.c_str());
             commands.Append(separator);
         };
@@ -4065,7 +4304,7 @@ static void EnsureActionButtons(muxc::CommandBar const& commandBar) {
 // Refresh custom button visibility, enabled state, separators, and dynamic
 // labels in O(C) time without disk I/O
 static void UpdateDynamicButtonStates(
-    muxc::CommandBar const& commandBar,
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar,
     HWND hExplorerWnd,
     const ExplorerContext* optContext = nullptr) {
     if (g_unloading || !commandBar) {
@@ -4116,15 +4355,18 @@ static void UpdateDynamicButtonStates(
     // Collect our custom buttons and separators in a single O(C) pass over
     // PrimaryCommands
     struct CustomButtonRef {
-        muxc::AppBarButton button{nullptr};
+        winrt::Microsoft::UI::Xaml::Controls::AppBarButton button{nullptr};
         int itemIndex = -1;
     };
     std::vector<CustomButtonRef> ourButtons;
-    std::unordered_map<std::wstring, mux::FrameworkElement> ourSeparators;
+    std::unordered_map<std::wstring,
+                       winrt::Microsoft::UI::Xaml::FrameworkElement>
+        ourSeparators;
 
     for (uint32_t i = 0; i < count; i++) {
         auto cmd = commands.GetAt(i);
-        auto element = cmd.try_as<mux::FrameworkElement>();
+        auto element =
+            cmd.try_as<winrt::Microsoft::UI::Xaml::FrameworkElement>();
         if (!element) {
             continue;
         }
@@ -4134,13 +4376,18 @@ static void UpdateDynamicButtonStates(
             continue;
         }
 
-        if (auto button = cmd.try_as<muxc::AppBarButton>()) {
+        if (auto button =
+                cmd.try_as<
+                    winrt::Microsoft::UI::Xaml::Controls::AppBarButton>()) {
             size_t underscore = name.rfind(L'_');
-            if (underscore != std::wstring::npos) {
-                int idx = _wtoi(name.c_str() + underscore + 1);
+            int idx = -1;
+            if (underscore != std::wstring::npos &&
+                TryParseNonNegativeInt(
+                    std::wstring_view(name).substr(underscore + 1), &idx)) {
                 ourButtons.push_back({std::move(button), idx});
             }
-        } else if (cmd.try_as<muxc::AppBarSeparator>()) {
+        } else if (cmd.try_as<winrt::Microsoft::UI::Xaml::Controls::
+                                  AppBarSeparator>()) {
             ourSeparators.emplace(std::move(name), std::move(element));
         }
     }
@@ -4169,23 +4416,27 @@ static void UpdateDynamicButtonStates(
                     displayResolved = L"\u25BE";
                 }
                 button.Label(displayResolved.c_str());
-                button.LabelPosition(muxc::CommandBarLabelPosition::Default);
+                button.LabelPosition(winrt::Microsoft::UI::Xaml::Controls::
+                                         CommandBarLabelPosition::Default);
             } else {
                 button.Label(displayResolved.c_str());
                 button.LabelPosition(
-                    item.showLabel ? muxc::CommandBarLabelPosition::Default
-                                   : muxc::CommandBarLabelPosition::Collapsed);
+                    item.showLabel ? winrt::Microsoft::UI::Xaml::Controls::
+                                         CommandBarLabelPosition::Default
+                                   : winrt::Microsoft::UI::Xaml::Controls::
+                                         CommandBarLabelPosition::Collapsed);
             }
-            muxc::ToolTipService::SetToolTip(
+            winrt::Microsoft::UI::Xaml::Controls::ToolTipService::SetToolTip(
                 button, winrt::box_value(winrt::hstring{fullResolved}));
         }
 
         if (disabledInsteadOfHidden) {
-            button.Visibility(mux::Visibility::Visible);
+            button.Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
             button.IsEnabled(isVisible);
         } else {
-            auto targetVis = isVisible ? mux::Visibility::Visible
-                                       : mux::Visibility::Collapsed;
+            auto targetVis =
+                isVisible ? winrt::Microsoft::UI::Xaml::Visibility::Visible
+                          : winrt::Microsoft::UI::Xaml::Visibility::Collapsed;
             button.Visibility(targetVis);
             button.IsEnabled(isVisible);
 
@@ -4208,8 +4459,9 @@ static void UpdateDynamicButtonStates(
 
 // Remove all mod-injected buttons/separators from a CommandBar and restore
 // DefaultLabelPosition
-static void RemoveOurButtons(muxc::CommandBar const& commandBar,
-                             CommandBarEntry* pEntry = nullptr) {
+static void RemoveOurButtons(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar,
+    CommandBarEntry* pEntry = nullptr) {
     g_modifyingCommandsDepth++;
     try {
         auto commands = commandBar.PrimaryCommands();
@@ -4219,7 +4471,9 @@ static void RemoveOurButtons(muxc::CommandBar const& commandBar,
                 continue;
             }
 
-            if (auto button = command.try_as<muxc::AppBarButton>()) {
+            if (auto button =
+                    command.try_as<
+                        winrt::Microsoft::UI::Xaml::Controls::AppBarButton>()) {
                 if (auto flyout = button.Flyout()) {
                     try {
                         flyout.Hide();
@@ -4256,8 +4510,9 @@ static void RemoveOurButtons(muxc::CommandBar const& commandBar,
 
 // Start a 250ms zero-I/O DispatcherTimer to track tab switches and selection
 // changes on the active window
-static void StartSelectionTimerIfNeeded(CommandBarEntry& entry,
-                                        muxc::CommandBar const& commandBar) {
+static void StartSelectionTimerIfNeeded(
+    CommandBarEntry& entry,
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar) {
     if (entry.selectionTimer || g_unloading) {
         return;
     }
@@ -4288,14 +4543,15 @@ static void StartSelectionTimerIfNeeded(CommandBarEntry& entry,
         return;
     }
 
-    mux::DispatcherTimer selectionTimer;
+    winrt::Microsoft::UI::Xaml::DispatcherTimer selectionTimer;
     selectionTimer.Interval(std::chrono::milliseconds(250));
 
     auto weakBar = winrt::make_weak(commandBar);
 
     auto timerToken = selectionTimer.Tick(
-        [weakBar, anyLabelHasTokens](wf::IInspectable const&,
-                                     wf::IInspectable const&) {
+        [weakBar, anyLabelHasTokens](
+            winrt::Windows::Foundation::IInspectable const&,
+            winrt::Windows::Foundation::IInspectable const&) {
             UiCallScope scope;
             if (g_unloading) {
                 return;
@@ -4307,7 +4563,13 @@ static void StartSelectionTimerIfNeeded(CommandBarEntry& entry,
             }
 
             HWND hWnd = GetExplorerWindowForElement(cb);
-            if (!hWnd || GetForegroundWindow() != hWnd) {
+            if (!hWnd || !IsWindowVisible(hWnd) || IsIconic(hWnd)) {
+                return;
+            }
+
+            HWND hForeground = GetForegroundWindow();
+            if (hForeground != hWnd &&
+                GetAncestor(hForeground, GA_ROOTOWNER) != hWnd) {
                 return;
             }
 
@@ -4394,7 +4656,8 @@ static void StartSelectionTimerIfNeeded(CommandBarEntry& entry,
 
 // Synchronize custom buttons, DefaultLabelPosition::Right on secondary bar, and
 // built-in button visibility
-static void UpdateCommandBar(muxc::CommandBar const& commandBar) {
+static void UpdateCommandBar(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar) {
     if (g_unloading) {
         return;
     }
@@ -4426,7 +4689,8 @@ static void UpdateCommandBar(muxc::CommandBar const& commandBar) {
             }
             try {
                 commandBar.DefaultLabelPosition(
-                    muxc::CommandBarDefaultLabelPosition::Right);
+                    winrt::Microsoft::UI::Xaml::Controls::
+                        CommandBarDefaultLabelPosition::Right);
             } catch (...) {
             }
             EnsureActionButtons(commandBar);
@@ -4447,7 +4711,8 @@ static void UpdateCommandBar(muxc::CommandBar const& commandBar) {
 // Enqueue a coalesced CommandBar update on the UI DispatcherQueue protected by
 // PendingDispatchScope and UiCallScope
 static void QueueCommandBarUpdate(
-    winrt::weak_ref<muxc::CommandBar> const& weakCommandBar,
+    winrt::weak_ref<winrt::Microsoft::UI::Xaml::Controls::CommandBar> const&
+        weakCommandBar,
     bool fullUpdate) {
     if (g_unloading) {
         return;
@@ -4506,7 +4771,8 @@ static void QueueCommandBarUpdate(
 
 // Register a newly discovered CommandBar instance and attach theme, unload, and
 // VectorChanged observers
-static void OnCommandBarAdded(muxc::CommandBar const& commandBar) {
+static void OnCommandBarAdded(
+    winrt::Microsoft::UI::Xaml::Controls::CommandBar const& commandBar) {
     if (g_unloading || !commandBar) {
         return;
     }
@@ -4537,15 +4803,15 @@ static void OnCommandBarAdded(muxc::CommandBar const& commandBar) {
         commandBar,
         commandBar.ActualThemeChanged(
             winrt::auto_revoke,
-            [](mux::FrameworkElement const& sender, wf::IInspectable const&) {
+            [](winrt::Microsoft::UI::Xaml::FrameworkElement const& sender,
+               winrt::Windows::Foundation::IInspectable const&) {
                 UiCallScope scope;
                 if (g_unloading) {
                     return;
                 }
 
-                ClearIconCache();
-
-                if (auto cb = sender.try_as<muxc::CommandBar>()) {
+                if (auto cb = sender.try_as<winrt::Microsoft::UI::Xaml::
+                                                Controls::CommandBar>()) {
                     try {
                         RemoveOurButtons(cb);
                         UpdateCommandBar(cb);
@@ -4555,25 +4821,31 @@ static void OnCommandBarAdded(muxc::CommandBar const& commandBar) {
                 }
             }));
 
-    TrackRevoker(commandBar,
-                 commandBar.Unloaded(
-                     winrt::auto_revoke, [](wf::IInspectable const& sender,
-                                            mux::RoutedEventArgs const&) {
-                         UiCallScope scope;
-                         auto cb = sender.try_as<muxc::CommandBar>();
-                         for (auto& ent : g_entries) {
-                             if (ent.commandBar.get() == cb) {
-                                 StopSelectionTimer(ent);
-                                 DetachVectorChangedObserver(ent);
-                                 break;
-                             }
-                         }
-                     }));
+    TrackRevoker(
+        commandBar,
+        commandBar.Unloaded(
+            winrt::auto_revoke,
+            [](winrt::Windows::Foundation::IInspectable const& sender,
+               winrt::Microsoft::UI::Xaml::RoutedEventArgs const&) {
+                UiCallScope scope;
+                auto cb = sender.try_as<
+                    winrt::Microsoft::UI::Xaml::Controls::CommandBar>();
+                for (auto& ent : g_entries) {
+                    if (ent.commandBar.get() == cb) {
+                        StopSelectionTimer(ent);
+                        DetachVectorChangedObserver(ent);
+                        break;
+                    }
+                }
+            }));
 
     entry.vectorChangedToken = commandBar.PrimaryCommands().VectorChanged(
         [weakCommandBar = winrt::make_weak(commandBar)](
-            wfc::IObservableVector<muxc::ICommandBarElement> const&,
-            wfc::IVectorChangedEventArgs const&) {
+            winrt::Windows::Foundation::Collections::IObservableVector<
+                winrt::Microsoft::UI::Xaml::Controls::
+                    ICommandBarElement> const&,
+            winrt::Windows::Foundation::Collections::
+                IVectorChangedEventArgs const&) {
             UiCallScope scope;
             if (g_unloading || g_modifyingCommandsDepth > 0) {
                 return;
@@ -4631,7 +4903,7 @@ static void RefreshButtonsForCurrentThread() {
     std::vector<CommandBarEntry> taken;
     taken.swap(g_entries);
 
-    std::vector<muxc::CommandBar> activeBars;
+    std::vector<winrt::Microsoft::UI::Xaml::Controls::CommandBar> activeBars;
     for (auto& entry : taken) {
         StopSelectionTimer(entry);
         DetachVectorChangedObserver(entry);
@@ -4671,7 +4943,8 @@ static bool IsTargetCommandBarName(std::wstring_view name) {
 
 // Check if both primary and secondary CommandBars have already been located
 static bool FoundAllCommandBars(
-    std::vector<muxc::CommandBar> const& commandBars) {
+    std::vector<winrt::Microsoft::UI::Xaml::Controls::CommandBar> const&
+        commandBars) {
     bool primary = false;
     bool secondary = false;
     for (auto const& commandBar : commandBars) {
@@ -4686,19 +4959,27 @@ static bool FoundAllCommandBars(
 
 // Traverse a XamlRoot visual tree up to depth 64 to locate File Explorer
 // CommandBar controls
-static void CollectCommandBars(mux::DependencyObject const& root,
-                               int depth,
-                               std::vector<muxc::CommandBar>* commandBars) {
+static void CollectCommandBars(
+    winrt::Microsoft::UI::Xaml::DependencyObject const& root,
+    int depth,
+    std::vector<winrt::Microsoft::UI::Xaml::Controls::CommandBar>*
+        commandBars) {
     if (depth > 64) {
         return;
     }
-    int count = muxm::VisualTreeHelper::GetChildrenCount(root);
+    int count =
+        winrt::Microsoft::UI::Xaml::Media::VisualTreeHelper::GetChildrenCount(
+            root);
     for (int i = 0; i < count; i++) {
         if (FoundAllCommandBars(*commandBars)) {
             return;
         }
-        auto child = muxm::VisualTreeHelper::GetChild(root, i);
-        if (auto commandBar = child.try_as<muxc::CommandBar>();
+        auto child =
+            winrt::Microsoft::UI::Xaml::Media::VisualTreeHelper::GetChild(root,
+                                                                          i);
+        if (auto commandBar =
+                child
+                    .try_as<winrt::Microsoft::UI::Xaml::Controls::CommandBar>();
             commandBar && IsTargetCommandBarName(commandBar.Name())) {
             commandBars->push_back(std::move(commandBar));
             continue;
@@ -4708,7 +4989,8 @@ static void CollectCommandBars(mux::DependencyObject const& root,
 }
 
 // Scan an element's XamlRoot visual tree and register discovered CommandBars
-static void ScanXamlRootForCommandBars(mux::UIElement const& element) try {
+static void ScanXamlRootForCommandBars(
+    winrt::Microsoft::UI::Xaml::UIElement const& element) try {
     if (g_unloading || !element) {
         return;
     }
@@ -4721,7 +5003,7 @@ static void ScanXamlRootForCommandBars(mux::UIElement const& element) try {
         return;
     }
 
-    std::vector<muxc::CommandBar> commandBars;
+    std::vector<winrt::Microsoft::UI::Xaml::Controls::CommandBar> commandBars;
     CollectCommandBars(content, 0, &commandBars);
     for (auto const& commandBar : commandBars) {
         OnCommandBarAdded(commandBar);
@@ -4735,7 +5017,8 @@ static void ScanXamlRootForCommandBars(mux::UIElement const& element) try {
 
 // Enqueue an asynchronous XamlRoot visual tree scan guarded by
 // PendingDispatchScope and UiCallScope
-static void ScheduleXamlRootScan(mux::UIElement const& element) try {
+static void ScheduleXamlRootScan(
+    winrt::Microsoft::UI::Xaml::UIElement const& element) try {
     if (g_unloading || !element) {
         return;
     }
@@ -4762,7 +5045,8 @@ static void ScheduleXamlRootScan(mux::UIElement const& element) try {
 
 // Return any live CommandBar weak reference already registered on the current
 // UI thread
-static muxc::CommandBar GetKnownCommandBarForCurrentThread() {
+static winrt::Microsoft::UI::Xaml::Controls::CommandBar
+GetKnownCommandBarForCurrentThread() {
     for (auto const& entry : g_entries) {
         if (auto commandBar = entry.commandBar.get()) {
             return commandBar;
@@ -4782,8 +5066,11 @@ static void ScanCurrentThreadForCommandBars() try {
         ScanXamlRootForCommandBars(knownCommandBar);
         return;
     }
-    auto focused = mux::Input::FocusManager::GetFocusedElement();
-    auto element = focused ? focused.try_as<mux::UIElement>() : nullptr;
+    auto focused =
+        winrt::Microsoft::UI::Xaml::Input::FocusManager::GetFocusedElement();
+    auto element = focused
+                       ? focused.try_as<winrt::Microsoft::UI::Xaml::UIElement>()
+                       : nullptr;
     if (!element) {
         Wh_Log(L"No XAML element to start from on thread %u",
                GetCurrentThreadId());
@@ -4837,8 +5124,9 @@ static void WINAPI CommandBarManager_CommandBar_Hook(void* pThis,
         return;
     }
     try {
-        auto const& element =
-            *reinterpret_cast<muxc::CommandBar const*>(commandBar);
+        auto const& element = *reinterpret_cast<
+            winrt::Microsoft::UI::Xaml::Controls::CommandBar const*>(
+            commandBar);
         if (!element) {
             return;
         }
@@ -4899,9 +5187,13 @@ static void HandleCommandBarControlGotFocus(void* sender) {
     }
     try {
         auto const& inspectable =
-            *reinterpret_cast<wf::IInspectable const*>(sender);
+            *reinterpret_cast<winrt::Windows::Foundation::IInspectable const*>(
+                sender);
         if (auto element =
-                inspectable ? inspectable.try_as<mux::UIElement>() : nullptr) {
+                inspectable
+                    ? inspectable
+                          .try_as<winrt::Microsoft::UI::Xaml::UIElement>()
+                    : nullptr) {
             ScanXamlRootForCommandBars(element);
         }
     } catch (...) {
@@ -5132,8 +5424,6 @@ static void LoadSettings() {
 
     g_settings.hideMoreButton =
         Wh_GetIntSetting(L"hideDefaultButtons.moreOptions") != 0;
-    g_settings.hideDetailsButton =
-        Wh_GetIntSetting(L"hideDefaultButtons.details") != 0;
 
     memset(g_settings.hideSeparatorAfterButton, 0,
            sizeof(g_settings.hideSeparatorAfterButton));
@@ -5216,24 +5506,14 @@ static void LoadSettings() {
         flatItems.push_back(std::move(item));
     }
 
-    // Warn in O(N) time if any child item references a non-existent or non-menu
-    // parent ID
-    for (const auto& item : flatItems) {
-        if (!item.parent.empty() &&
-            validMenuIds.find(ToLower(item.parent)) == validMenuIds.end()) {
-            Wh_Log(
-                L"Warning: Item '%s' references unknown or non-menu parent ID "
-                L"'%s' - item will not be visible",
-                item.id.c_str(), item.parent.c_str());
-        }
-    }
-
     // Collect and sort top-level toolbar items while preserving original list
     // order on ties
     std::vector<ActionItem> rootItems;
-    for (const auto& item : flatItems) {
-        if (item.parent.empty()) {
-            rootItems.push_back(item);
+    std::vector<bool> attachedItemIndices(flatItems.size(), false);
+    for (size_t i = 0; i < flatItems.size(); i++) {
+        if (flatItems[i].parent.empty()) {
+            rootItems.push_back(flatItems[i]);
+            attachedItemIndices[i] = true;
         }
     }
 
@@ -5268,6 +5548,7 @@ static void LoadSettings() {
                     continue;
                 }
 
+                attachedItemIndices[childIdx] = true;
                 ActionItem child = candidate;
                 attachChildren(child, depth + 1);
                 node.subItems.push_back(std::move(child));
@@ -5283,6 +5564,27 @@ static void LoadSettings() {
 
     for (auto& root : rootItems) {
         attachChildren(root, 0);
+    }
+
+    // Warn in O(N) time if any child item was unreachable due to an unknown,
+    // non-menu, or disconnected cyclic parent ID
+    for (size_t i = 0; i < flatItems.size(); i++) {
+        if (!flatItems[i].parent.empty() && !attachedItemIndices[i]) {
+            const auto& item = flatItems[i];
+            if (validMenuIds.find(ToLower(item.parent)) == validMenuIds.end()) {
+                Wh_Log(
+                    L"Warning: Item '%s' references unknown or non-menu parent "
+                    L"ID '%s' - item will not be visible",
+                    item.id.c_str(), item.parent.c_str());
+            } else {
+                Wh_Log(
+                    L"Warning: Item '%s' (parent '%s') is unreachable from the "
+                    L"root toolbar (disconnected cycle or depth > %zu) - item "
+                    L"will not be visible",
+                    item.id.c_str(), item.parent.c_str(),
+                    kMaxMenuHierarchyDepth);
+            }
+        }
     }
 
     g_settings.items = std::move(rootItems);
