@@ -516,7 +516,7 @@ static void AttachListViewSubclass(HWND hWnd, bool formatExisting) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Strict Evaluation Popup Blocker
+// 3. Zero-Flicker Evaluation Popup Blocker
 // ---------------------------------------------------------------------------
 
 // Checks if a dialog template name matches WinRAR's trial reminder resources
@@ -547,7 +547,7 @@ static bool IsEvaluationWindowTitle(const WCHAR* title) {
     return false;
 }
 
-// Verifies the classic trial dialog by checking its child buttons and text
+// Verifies the trial dialog by checking its child controls or embedded browser
 static bool HasEvaluationDialogSignature(HWND hDlg) {
     if (!hDlg || !IsWindow(hDlg))
         return false;
@@ -558,6 +558,17 @@ static bool HasEvaluationDialogSignature(HWND hDlg) {
 
     for (HWND hChild = GetWindow(hDlg, GW_CHILD); hChild != nullptr;
          hChild = GetWindow(hChild, GW_HWNDNEXT)) {
+        WCHAR cls[64] = {};
+        if (GetClassNameW(hChild, cls, ARRAYSIZE(cls))) {
+            // The web-based Trial Expired popup hosts an embedded browser
+            // control ("Shell Embedding" / "WebView2") inside a dialog window
+            if (_wcsicmp(cls, L"Shell Embedding") == 0 ||
+                _wcsicmp(cls, L"Internet Explorer_Server") == 0 ||
+                ContainsCaseInsensitive(cls, L"WebView")) {
+                return true;
+            }
+        }
+
         WCHAR text[256] = {};
         if (GetWindowTextW(hChild, text, ARRAYSIZE(text)) <= 0)
             continue;
@@ -593,28 +604,114 @@ static bool IsEvaluationPopupWindow(HWND hWnd) {
     }
 
     WCHAR cls[64] = {};
-    if (GetClassNameW(hWnd, cls, ARRAYSIZE(cls)) &&
-        _wcsicmp(cls, L"#32770") == 0) {
-        if (HasEvaluationDialogSignature(hWnd))
+    if (GetClassNameW(hWnd, cls, ARRAYSIZE(cls))) {
+        if (_wcsicmp(cls, L"RarReminder") == 0 ||
+            _wcsicmp(cls, L"RarWebReminder") == 0) {
             return true;
+        }
+
+        if (_wcsicmp(cls, L"#32770") == 0 &&
+            HasEvaluationDialogSignature(hWnd)) {
+            return true;
+        }
     }
 
     return false;
 }
 
+// Checks whether a window creation call is creating the web reminder host
+// (which starts with the title "WinRAR" over an already-open main window)
+static bool IsWebReminderCreation(LPCWSTR lpClassName,
+                                  LPCWSTR lpWindowName,
+                                  DWORD dwStyle,
+                                  HWND hWndParent) {
+    if ((dwStyle & WS_CHILD) != 0)
+        return false;
+
+    WCHAR clsName[128] = {};
+    if (lpClassName) {
+        if (IS_INTRESOURCE(lpClassName)) {
+            GlobalGetAtomNameW(LOWORD(reinterpret_cast<ULONG_PTR>(lpClassName)),
+                               clsName, ARRAYSIZE(clsName));
+        } else {
+            wcsncpy_s(clsName, lpClassName, _TRUNCATE);
+        }
+    }
+
+    // Direct match on WinRAR's reminder window class
+    if (_wcsicmp(clsName, L"RarReminder") == 0 ||
+        _wcsicmp(clsName, L"RarWebReminder") == 0) {
+        return true;
+    }
+
+    // When WinRAR spawns the promotional web window, it creates a popup/owned
+    // window with the initial title "WinRAR" parented to the main WinRAR window
+    if (hWndParent != nullptr && lpWindowName != nullptr &&
+        _wcsicmp(lpWindowName, L"WinRAR") == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+// Thread-local pointer to pass the original DLGPROC into our wrapper
+static thread_local DLGPROC g_tlsOriginalDlgProc = nullptr;
+
+// Intercepts WM_INITDIALOG before Windows makes the modal dialog visible
+static INT_PTR CALLBACK ModalDialogInterceptorProc(HWND hDlg,
+                                                   UINT uMsg,
+                                                   WPARAM wParam,
+                                                   LPARAM lParam) {
+    DLGPROC origProc =
+        reinterpret_cast<DLGPROC>(GetPropW(hDlg, L"WhOrigDlgProc"));
+    if (!origProc && g_tlsOriginalDlgProc) {
+        origProc = g_tlsOriginalDlgProc;
+        SetPropW(hDlg, L"WhOrigDlgProc", reinterpret_cast<HANDLE>(origProc));
+    }
+
+    INT_PTR res = origProc ? origProc(hDlg, uMsg, wParam, lParam) : FALSE;
+
+    if (uMsg == WM_INITDIALOG && g_settings.auto_dismiss_eval_dialog) {
+        // After WinRAR's WM_INITDIALOG finishes populating child controls and
+        // title text (but BEFORE Windows shows the dialog on screen), check if
+        // this dialog is the evaluation reminder and abort it immediately.
+        if (IsEvaluationPopupWindow(hDlg)) {
+            Wh_Log(L"Aborted evaluation dialog inside WM_INITDIALOG");
+            EndDialog(hDlg, IDCANCEL);
+            return TRUE;
+        }
+    } else if (uMsg == WM_NCDESTROY) {
+        RemovePropW(hDlg, L"WhOrigDlgProc");
+    }
+
+    return res;
+}
+
 using DialogBoxParamW_t = decltype(&DialogBoxParamW);
 static DialogBoxParamW_t pfnDialogBoxParamW_Original = nullptr;
 
-// Blocks modal evaluation dialogs before the window is created
+// Hooks modal dialog creation to block evaluation dialogs before they render
 INT_PTR WINAPI DialogBoxParamW_Hook(HINSTANCE hInstance,
                                     LPCWSTR lpTemplateName,
                                     HWND hWndParent,
                                     DLGPROC lpDialogFunc,
                                     LPARAM dwInitParam) {
-    if (g_settings.auto_dismiss_eval_dialog &&
-        IsEvaluationTemplateName(lpTemplateName)) {
-        Wh_Log(L"Blocked modal evaluation dialog template: %s", lpTemplateName);
-        return IDCANCEL;
+    if (g_settings.auto_dismiss_eval_dialog) {
+        if (IsEvaluationTemplateName(lpTemplateName)) {
+            Wh_Log(L"Blocked modal evaluation dialog template: %s",
+                   lpTemplateName);
+            return IDCANCEL;
+        }
+
+        if (lpDialogFunc) {
+            DLGPROC prevProc = g_tlsOriginalDlgProc;
+            g_tlsOriginalDlgProc = lpDialogFunc;
+            INT_PTR ret = pfnDialogBoxParamW_Original(
+                hInstance, lpTemplateName, hWndParent,
+                ModalDialogInterceptorProc, dwInitParam);
+            g_tlsOriginalDlgProc = prevProc;
+            return ret;
+        }
     }
 
     return pfnDialogBoxParamW_Original(hInstance, lpTemplateName, hWndParent,
@@ -653,7 +750,7 @@ HWND WINAPI CreateDialogParamW_Hook(HINSTANCE hInstance,
 using SetWindowTextW_t = decltype(&SetWindowTextW);
 static SetWindowTextW_t pfnSetWindowTextW_Original = nullptr;
 
-// Catches evaluation dialogs when WinRAR sets their title during WM_INITDIALOG
+// Catches evaluation dialogs when WinRAR sets their title dynamically
 BOOL WINAPI SetWindowTextW_Hook(HWND hWnd, LPCWSTR lpString) {
     BOOL res = pfnSetWindowTextW_Original(hWnd, lpString);
 
@@ -662,7 +759,7 @@ BOOL WINAPI SetWindowTextW_Hook(HWND hWnd, LPCWSTR lpString) {
         IsEvaluationWindowTitle(lpString)) {
         Wh_Log(L"Dismissing evaluation popup on title set: %s", lpString);
         if (!EndDialog(hWnd, IDCANCEL)) {
-            PostMessageW(hWnd, WM_CLOSE, 0, 0);
+            DestroyWindow(hWnd);
         }
     }
 
@@ -706,10 +803,13 @@ HWND WINAPI CreateWindowExW_Hook(DWORD dwExStyle,
                                  HMENU hMenu,
                                  HINSTANCE hInstance,
                                  LPVOID lpParam) {
-    if (g_settings.auto_dismiss_eval_dialog && !(dwStyle & WS_CHILD) &&
-        lpWindowName && IsEvaluationWindowTitle(lpWindowName)) {
-        Wh_Log(L"Blocked evaluation window creation: %s", lpWindowName);
-        return nullptr;
+    if (g_settings.auto_dismiss_eval_dialog && !(dwStyle & WS_CHILD)) {
+        if ((lpWindowName && IsEvaluationWindowTitle(lpWindowName)) ||
+            IsWebReminderCreation(lpClassName, lpWindowName, dwStyle,
+                                  hWndParent)) {
+            Wh_Log(L"Blocked evaluation window creation in CreateWindowExW");
+            return nullptr;
+        }
     }
 
     HWND hWnd = pfnCreateWindowExW_Original(
@@ -717,6 +817,26 @@ HWND WINAPI CreateWindowExW_Hook(DWORD dwExStyle,
         hWndParent, hMenu, hInstance, lpParam);
 
     if (hWnd) {
+        // If an embedded browser control ("Shell Embedding" / WebView) is
+        // created inside a dialog popup, hide and close the parent popup
+        // immediately before it paints on screen.
+        if (g_settings.auto_dismiss_eval_dialog && (dwStyle & WS_CHILD) &&
+            hWndParent) {
+            WCHAR cls[64] = {};
+            if (GetClassNameW(hWnd, cls, ARRAYSIZE(cls)) &&
+                (_wcsicmp(cls, L"Shell Embedding") == 0 ||
+                 ContainsCaseInsensitive(cls, L"WebView"))) {
+                HWND hRoot = GetAncestor(hWndParent, GA_ROOT);
+                if (hRoot && GetMenu(hRoot) == nullptr) {
+                    Wh_Log(L"Aborted web reminder host on browser creation");
+                    ShowWindow(hRoot, SW_HIDE);
+                    if (!EndDialog(hRoot, IDCANCEL)) {
+                        PostMessageW(hRoot, WM_CLOSE, 0, 0);
+                    }
+                }
+            }
+        }
+
         AttachListViewSubclass(hWnd, false);
     }
 
