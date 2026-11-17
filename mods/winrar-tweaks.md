@@ -1,17 +1,24 @@
 # WinRAR Tweaks
 
-All-in-one quality-of-life enhancements for **WinRAR** that modernize navigation and file size readability without altering archive behavior.
+Simple quality-of-life improvements that make **WinRAR** cleaner, easier to read, and faster to use—without changing how your archives work.
 
 ---
 
 ## ✨ Features
 
-* ⌨️ **Smart Close on `Esc`:** Quickly close WinRAR with the `Escape` key—just like modern utilities and viewers. Intelligently respects active context menus, menu bars, dropdowns, inline file renaming, and child dialogs (closing open popups first before closing the main window).
-* 📊 **Human-Readable File Sizes:** Automatically converts hard-to-read raw byte counts (e.g., `121815`) in the **Size** and **Packed** columns into clean, readable units (`B`, `KB`, `MB`, `GB`, `TB`).
-* ⚙️ **Modular Settings:** Toggle either tweak independently at any time in the mod's Settings tab.
+* 🔍 **VS Code-Style Quick Filter Bar (`Ctrl+F`):** Press `Ctrl+F` (or just start typing with *Type to Search* enabled) to open a native bottom filter bar with `↑` / `↓` / `✕` buttons, a live match counter (`1 of 12`), `Enter` / `Shift+Enter` navigation, and optional `Alt+Enter` to select all matches at once. Automatically adapts to both Light and Dark themes.
+* 🚫 **Auto-Dismiss Trial Popup:** Automatically blocks the *"Please purchase WinRAR license"* and *"Trial Expired"* popups on startup before they even appear on screen.
+* 📊 **Readable File Sizes (All Languages):** Converts long, hard-to-read byte numbers (like `121,815,400`) in the **Size** and **Packed** columns into clean units (`B`, `KB`, `MB`, `GB`, `TB`). Works automatically in all WinRAR display languages.
+* 🏷️ **Optional `KiB` / `MiB` Labels:** Prefer technical binary units? Flip a single switch in Settings to display `KiB`, `MiB`, `GiB`, and `TiB` instead of `KB`, `MB`, `GB`, and `TB`.
+* ⌨️ **Smart Close on `Esc`:** Press `Escape` to quickly close WinRAR just like modern apps. Smart enough to close the quick search bar, open popups, menus, dropdowns, or file-rename boxes first before closing the main window.
+* ⚙️ **Customizable Settings:** Enable or disable any feature independently at any time in the Settings tab.
 
+---
 
 ## 🖼️ Previews
+
+### Quick Filter Bar
+![WinRAR Quick Filter Search Bar Preview](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_qsb_preview.png)
 
 ### Human-Readable File Sizes
 ![WinRAR File Size Before and After Preview](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_preview_1.png)
@@ -19,20 +26,28 @@ All-in-one quality-of-life enhancements for **WinRAR** that modernize navigation
 ### Smart Close on Esc
 ![WinRAR Close on Esc Demo Webp](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_preview_2.webp)
 
+### Auto-Dismiss Trial Popup
+
+#### Before (Default)
+![WinRAR Auto-Dismiss Trial Popup Webp 1](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_adtp_1.webp)
+#### After (WinRAR Tweaks)
+![WinRAR Auto-Dismiss Trial Popup Webp 2](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_adtp_2.webp)
+
 ---
 
 ## 🛠️ How It Works
 
-* **Modal & Input Guarding:** Queries live Win32 thread GUI state (`GetGUIThreadInfo`) so `Esc` never interrupts active menu loops, drag/capture operations, dropdowns, or inline `Edit` rename boxes before sending `WM_CLOSE`.
-* **In-Place ListView Formatting:** Subclasses WinRAR's `SysListView32` file list (both newly created and already-open windows) and formats raw byte counts on the fly as items are populated or refreshed.
+* **Safe Quick Filtering:** Instead of deleting rows from WinRAR's list (which would break extraction indices), the quick filter bar highlights matching files in place, scrolls the active match into view, and lets you cycle through matches with `Enter` / `Shift+Enter` or `Up` / `Down`. Clicking the empty bar area returns focus to the file list while keeping your match highlighted.
+* **Instant Popup Blocking:** Detects WinRAR's startup trial reminder in the background and dismisses it before the window is drawn, so you never see a flicker. All other WinRAR dialogs (Extract, Add, Password, Info, etc.) work normally.
+* **Smart Size Formatting:** Formats raw byte numbers on the fly as you browse folders inside an archive, supporting every language automatically.
+* **Safe `Esc` Handling:** Checks what you are doing before closing—so pressing `Esc` while using the search bar, renaming a file, dragging items, or browsing a right-click menu won't accidentally close your window.
 
 ---
 
-## ⚠️ Compatibility & Notes
+## 💡 Good to Know
 
-* **Refreshing After Changing Settings or Disabling:** If you toggle the *Human-Readable File Sizes* setting on or off, or disable/remove the mod while WinRAR is open, please press **`F5`** or navigate to another folder and back to refresh the file list with the updated size format.
-* **Supported Column Languages:** Out-of-the-box header detection supports English (`Size`, `Packed`) as well as common localized headers (`Размер`, `Сжатый`, `Größe`, `Gepackt`, `Taille`, `Compressé`, `Tamaño`, `Comprimido`).
-* **Sorting Behavior:** Because WinRAR sorts internal archive records prior to display formatting, sorting by Size or Packed continues to sort accurately by exact byte count.
+* **Sorting Still Works Perfectly:** Clicking the **Size**, **Packed**, or **Name** column headers still sorts your files accurately and automatically updates active filter matches.
+* **Toggling Settings Live:** Switching between `KB` and `KiB` or toggling the *Always Visible* search bar updates open WinRAR windows right away without freezing. If you turn off *Human-Readable File Sizes* completely while WinRAR is open, press **`F5`** (or open another folder) to switch the numbers back to raw bytes.
 
 ---
 
