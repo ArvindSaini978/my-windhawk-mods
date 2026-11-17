@@ -34,11 +34,21 @@ Simple quality-of-life improvements that make **WinRAR** cleaner, easier to read
 
 ## 🖼️ Previews
 
+### Quick Filter Bar
+![WinRAR Quick Filter Search Bar Preview](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_qsb_preview.png)
+
 ### Human-Readable File Sizes
 ![WinRAR File Size Before and After Preview](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_preview_1.png)
 
 ### Smart Close on Esc
 ![WinRAR Close on Esc Demo Webp](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_preview_2.webp)
+
+### Auto-Dismiss Trial Popup
+
+#### Before (Default)
+![WinRAR Auto-Dismiss Trial Popup Webp 1](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_adtp_1.webp)
+#### After (WinRAR Tweaks)
+![WinRAR Auto-Dismiss Trial Popup Webp 2](https://raw.githubusercontent.com/ArvindSaini978/my-windhawk-mods/master/assets/wt_adtp_2.webp)
 
 ---
 
