@@ -2,7 +2,7 @@
 // @id              winrar-tweaks
 // @name            WinRAR Tweaks
 // @description     Convert file sizes into readable units (KB, MB, GB), add a VS Code-style Ctrl+F quick filter bar, close WinRAR with Esc, and optionally auto-dismiss the trial reminder popup.
-// @version         1.1.0
+// @version         1.1.1
 // @author          ArvindSaini978
 // @github          https://github.com/ArvindSaini978
 // @homepage        https://github.com/ArvindSaini978/my-windhawk-mods
@@ -1206,8 +1206,62 @@ static LRESULT CALLBACK SearchButtonSubclassProc(HWND hWnd,
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
+// Deletes the previous word (or active selection) on Ctrl+Backspace in the
+// search Edit control without flashing a selection highlight or inserting 0x7F
+static void DeletePreviousWordInEdit(HWND hEdit) {
+    DWORD selStart = 0;
+    DWORD selEnd = 0;
+    SendMessageW(hEdit, EM_GETSEL, reinterpret_cast<WPARAM>(&selStart),
+                 reinterpret_cast<LPARAM>(&selEnd));
+
+    if (selStart != selEnd) {
+        SendMessageW(hEdit, EM_REPLACESEL, TRUE, reinterpret_cast<LPARAM>(L""));
+        return;
+    }
+
+    if (selStart == 0)
+        return;
+
+    WCHAR text[256] = {};
+    int len = GetWindowTextW(hEdit, text, ARRAYSIZE(text));
+    if (len <= 0)
+        return;
+
+    int pos = static_cast<int>(selStart);
+    if (pos > len)
+        pos = len;
+
+    // 1. Skip any whitespace immediately preceding the caret
+    while (pos > 0 && iswspace(text[pos - 1])) {
+        --pos;
+    }
+
+    // 2. Delete either a contiguous run of alphanumeric characters or symbols
+    if (pos > 0) {
+        if (iswalnum(text[pos - 1])) {
+            while (pos > 0 && iswalnum(text[pos - 1])) {
+                --pos;
+            }
+        } else {
+            while (pos > 0 && !iswalnum(text[pos - 1]) &&
+                   !iswspace(text[pos - 1])) {
+                --pos;
+            }
+        }
+    }
+
+    // Suppress intermediate selection painting so rapid Ctrl+Backspace never
+    // flashes a selection highlight before deleting the word
+    SendMessageW(hEdit, WM_SETREDRAW, FALSE, 0);
+    SendMessageW(hEdit, EM_SETSEL, static_cast<WPARAM>(pos),
+                 static_cast<LPARAM>(selStart));
+    SendMessageW(hEdit, EM_REPLACESEL, TRUE, reinterpret_cast<LPARAM>(L""));
+    SendMessageW(hEdit, WM_SETREDRAW, TRUE, 0);
+    InvalidateRect(hEdit, nullptr, TRUE);
+}
+
 // Subclass procedure for the search input Edit control (handles
-// Up/Down/Enter/Esc & placeholder)
+// Up/Down/Enter/Esc/Ctrl+Backspace & placeholder)
 static LRESULT CALLBACK SearchEditSubclassProc(HWND hWnd,
                                                UINT uMsg,
                                                WPARAM wParam,
@@ -1244,6 +1298,10 @@ static LRESULT CALLBACK SearchEditSubclassProc(HWND hWnd,
                 SendMessageW(hWnd, EM_SETSEL, 0, -1);
                 return 0;
             }
+            if (wParam == VK_BACK && ctrlDown && !altDown && !shiftDown) {
+                DeletePreviousWordInEdit(hWnd);
+                return 0;
+            }
             if (wParam == VK_DOWN) {
                 if (!ctrlDown && !altDown && !shiftDown) {
                     StepQuickFilterMatch(state, +1);
@@ -1278,7 +1336,8 @@ static LRESULT CALLBACK SearchEditSubclassProc(HWND hWnd,
     }
 
     if (uMsg == WM_CHAR || uMsg == WM_SYSCHAR) {
-        if (wParam == VK_RETURN || wParam == VK_ESCAPE || wParam == 1) {
+        if (wParam == VK_RETURN || wParam == VK_ESCAPE || wParam == 1 ||
+            wParam == 0x7F) {
             return 0;
         }
     }
