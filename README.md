@@ -12,7 +12,7 @@ My personal collection of Windhawk mods.
 | Drag to Scroll | Hold Ctrl + Right-Click (or pure Right-Click) and drag to scroll smoothly across browsers, documents, editors, and File Explorer—with flick speed boost and hands-free cruising. | `v1.2.0` | [Readme](./mods/drag-to-scroll.md) | [Code](./mods/drag-to-scroll.wh.cpp) |
 | Dynamic Explorer Command Bar | Add custom buttons and menus to the Windows 11 File Explorer command bar with dynamic file-type filtering, tokens, and secondary bar docking | `v1.1.0` | [Readme](./mods/dynamic-explorer-command-bar.md) | [Code](./mods/dynamic-explorer-command-bar.wh.cpp) |
 | Explorer Custom Shortcuts | Customizable keyboard shortcuts for File Explorer: open terminal, copy paths, create files/folders, toggle hidden items, and launch apps with hotkeys. | `v1.8.0` | [Readme](./mods/explorer-custom-shortcuts.md) | [Code](./mods/explorer-custom-shortcuts.wh.cpp) |
-| WinRAR Tweaks | Convert file sizes into readable units (KB, MB, GB), add a VS Code-style Ctrl+F quick filter bar, close WinRAR with Esc, and optionally auto-dismiss the trial reminder popup. | `v1.1.0` | [Readme](./mods/winrar-tweaks.md) | [Code](./mods/winrar-tweaks.wh.cpp) |
+| WinRAR Tweaks | Convert file sizes into readable units (KB, MB, GB), add a VS Code-style Ctrl+F quick filter bar, close WinRAR with Esc, and optionally auto-dismiss the trial reminder popup. | `v1.1.1` | [Readme](./mods/winrar-tweaks.md) | [Code](./mods/winrar-tweaks.wh.cpp) |
 <!-- MODS_TABLE_END -->
 
 ---
